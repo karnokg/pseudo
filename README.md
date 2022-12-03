@@ -27,6 +27,7 @@
 
 - [ ] Semantics 
 - [ ] Code generation
+- [ ] Debug informations
 - [ ] Tests
 
 ## Technical stuff
