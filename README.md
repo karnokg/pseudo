@@ -8,6 +8,26 @@
 
 ### Example codes
 
+### TODOs
+- [x] Lexer
+- [ ] Parser (Grammar) 
+	- [x] Variable declaration statement
+	- [x] Function declaration statement
+	- [ ] Variable assignment statement
+	- [x] Integer variable type
+	- [x] Rational variable type
+	- [x] Logical variable type
+	- [x] Binary operators
+	- [x] Identifiers 
+	- [ ] If statement
+	- [ ] For statements
+	- [ ] Return statements
+	- [ ] Arrays
+	- [ ] Pointers?
+
+- [ ] Semantics 
+- [ ] Code generation
+
 ## Technical stuff
 
 ### Requirements
