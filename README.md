@@ -12,11 +12,9 @@
 
 ### Requirements
 
-	* flex 2.6.4
-
-	* bison 3.8.2
-
-	* LLVM <version>
+* flex 2.6.4
+* bison 3.8.2
+* LLVM version
 
 ### Building the Source code
 
