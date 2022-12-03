@@ -1,0 +1,13 @@
+fuggveny void start()
+    LNKO( 10, 6 )
+fuggveny vege
+
+fuggveny egesz LNKO(m: egesz, n: egesz) 
+    r <- m mod n
+    ciklus amig r =!= 0
+        m <- n
+        n <- r
+        r <- m mod n
+    ciklus vege
+    vissza n
+fuggveny vege
