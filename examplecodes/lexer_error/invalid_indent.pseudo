@@ -1,0 +1,7 @@
+fuggveny void a()
+	x: egesz <- 5
+		y: egesz <- 9
+			z: egesz <- 8
+
+	sum: egesz <- x + y + z
+fuggveny vege
