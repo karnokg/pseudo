@@ -1,6 +1,6 @@
 pseudo: lex.yy.cc parser.tab.cc parser.tab.hh main.cpp
-	mkdir -p build
-	g++ lex.yy.cc parser.tab.cc main.cpp -o build/pseudo -std=c++17
+	mkdir -p ../build
+	g++ lex.yy.cc parser.tab.cc main.cpp -o ../build/pseudo -std=c++17 -g
 
 lex.yy.cc: lexer.l
 	flex lexer.l
@@ -16,4 +16,4 @@ clean:
 	rm -f location.hh
 	rm -f position.hh
 	rm -f stack.hh
-	rm -r build 
+	rm -r ../build 

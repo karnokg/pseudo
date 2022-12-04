@@ -9,7 +9,12 @@
 ### Example codes
 
 ### TODOs
+- [x] Use cmake
+- [ ] Restructure project folder like `https://gitlab.com/CLIUtils/modern-cmake/-/tree/master/examples/extended-project/src`
+- [ ] Rewrite building source section
 - [x] Lexer
+	- [x] Tab based indentation
+	- [x] Tokens
 - [ ] Parser (Grammar) 
 	- [x] Variable declaration statement
 	- [x] Function declaration statement
@@ -28,6 +33,7 @@
 - [ ] Semantics 
 - [ ] Code generation
 - [ ] Debug informations
+
 - [ ] Tests
 
 ## Technical stuff
@@ -43,8 +49,8 @@
 1. Checkout Pseudo:
 	* `git clone https://github.com/karnokg/pseudo.git`
 
-2. Build using make:
-	* `make pseudo`
+2. Build using CMake:
+	* `TODO`
 
 3. Done!
 
@@ -52,5 +58,8 @@
 
 1. In terminal: 
 	* `./pseudo <filename>`
+
+2. Run compiled code:
+	* `TODO`
 
 

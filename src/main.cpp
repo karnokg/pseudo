@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
-#include "parser.tab.hh"
+//include "parser.tab.hh"
+#include "parser.h"
 #include "FlexLexer.h"
 
 yyFlexLexer* lexer;
@@ -34,17 +35,27 @@ int main(int argc, char* argv[])
     if (argc != 2)
     {
         std::cout << "no input" << std::endl;
-        return 0;
+        return 1;
     }
 
     std::ifstream input(argv[1]);
     if (!input)
     {
         std::cout << "can't open file" << std::endl;
-        return 0;
+        return 1;
     }
 
     lexer = new yyFlexLexer(&input);
+// LEXER DEBUG
+
+    for (int i = 0; i < 1000; ++i)
+    {
+        lexer->yylex();
+    }
+
+    return 0;
+// DEBUG_END
+
     yy::parser parser;
     int result = parser.parse();
 

@@ -10,7 +10,7 @@
 
 %{
     #include <memory>
-    std::shared_ptr<N>  
+    //std::shared_ptr<NBlock> programBlock;
 
     int teszt = 42; // the top level root node of our final AST
     
@@ -66,6 +66,8 @@
 %token T_IDENTIFIER
 %token T_INTEGER_VAL /* todo use it */
 %token T_RATIONAL_VAL /* todo use it */
+%token T_INDENT
+%token T_OUTDENT
 
 %left T_OR
 %left T_AND
@@ -79,6 +81,9 @@
 
 start:
     stmts
+    {
+        std::cout << "stmts ->" << std::endl;
+    }
 
 func_decl :
     T_FUNCTION type_specifier T_IDENTIFIER T_LPAREN func_decl_args T_RPAREN T_NEWLINE stmts T_FUNCTION T_END
