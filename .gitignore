@@ -31,6 +31,14 @@
 *.out
 *.app
 
+# Generated flex/bison files
+parser.h
+parser.cpp
+position.hh
+location.hh
+lexer.cpp
+stack.hh
+
 build*
 CMakeLists.txt.user
 CMakeCache.txt
