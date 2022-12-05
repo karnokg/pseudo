@@ -103,7 +103,7 @@ class NBlock : public NExpression
 {
 public:
     StatementList statements;
-    NBlock();
+    NBlock() {}
 };
 
 class NExpressionStatement : public NStatement
