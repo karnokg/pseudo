@@ -2,7 +2,8 @@
     "cmake.sourceDirectory": "${workspaceFolder}/src",
     "cmake.debugConfig": {
         "args": [
-            "../examplecodes/lexer_ok/indentations.pseudo"
+            "../../examplecodes/lexer_ok/indentations.pseudo"
+
         ]
     },
 }

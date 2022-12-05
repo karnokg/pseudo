@@ -1,26 +1,82 @@
-%language "c++"
-%locations
-%define api.value.type variant
+%skeleton "lalr1.cc" // -*- C++ -*-
+%require "3.8.1"
+%debug
 
-%define parse.error verbose
+%defines
+%define api.namespace { Pseudo }
+%define api.parser.class { Parser }
 
-%code provides {
-    int yylex(yy::parser::semantic_type* yylval, yy::parser::location_type* yyalloc);
+%code requires {
+    namespace Pseudo {
+        class Interpreter;
+        class Scanner;
+    };
+
+    #include "node.h"
 }
 
-%{
-    #include <memory>
-    //std::shared_ptr<NBlock> programBlock;
+%parse-param { Scanner& scanner  }
+%parse-param { Interpreter& driver  }
 
-    int teszt = 42; // the top level root node of our final AST
-    
-%}
+%code {
+    #include <iostream>
+    #include <cstdlib>
+    #include <fstream>
+
+    #include "interpreter.h"
+    #include "node.h"
+
+    #undef yylex
+    #define yylex scanner.yylex
+}
+
+/*define api.value.type variant*/
+%define parse.assert
+%define parse.error detailed
+
+/*
+%code top {
+    #include <iostream>
+    #include <vector>
+    #include "scanner.h"
+    #include "parser.h"
+    #include "interpreter.h"
+    #include "location.hh"
+
+    static int yylex(Scanner& scanner, Interpreter& driver) {
+        return scanner.get_next_token();
+    }
+
+    static int yylex(yy::Parser::value_type* value_type, yy::Parser::location_type* location_type, Scanner& scanner, Interpreter& driver) {
+        return scanner.get_next_token();
+    }
+
+    // or #define yylex(x, y) scanner.get_net_token()
+}
+
+%code requires {
+    #include "node.h"
+    class Scanner;
+    class Interpreter;
+}
+
+%lex-param { Scanner& scanner }
+%lex-param { Interpreter& driver }
+
+%parse-param { Scanner& scanner }
+%parse-param { Interpreter& driver }
+*/
+
+%union {
+    Node* node;
+    NBlock* block;
+    NStatement* stmt;
+    std::string* string;
+    int token;
+}
 
 %token T_PROGRAM
-%token T_MODULUS
 %token T_VOID
-%token T_TRUE
-%token T_FALSE
 %token T_FUNCTION
 %token T_END
 %token T_IF
@@ -37,37 +93,19 @@
 %token T_RATIONAL
 %token T_ARRAY /* todo use it*/
 %token T_PRINT
-%token T_ASSIGN
-%token T_SWAP /* todo use it*/
-%token T_LESS
-%token T_GREATER
-%token T_LESSEQ
-%token T_GREATEREQ
-%token T_EQ
-%token T_NOTEQ
-%token T_ADD
-%token T_MINUS
-%token T_DIV
-%token T_MUL
-%token T_AND
-%token T_OR
-%token T_COMMA
-%token T_DOT /* todo use it?*/
-%token T_NOT
-%token T_LPAREN
-%token T_RPAREN
-%token T_LSBRACKET
-%token T_RSBRACKET
-%token T_QUESTIONMARK /* todo use it*/
-%token T_COLON
 %token T_STRING
-%token T_STRING_VAL
 %token T_NEWLINE
-%token T_IDENTIFIER
-%token T_INTEGER_VAL /* todo use it */
-%token T_RATIONAL_VAL /* todo use it */
-%token T_INDENT
-%token T_OUTDENT
+%token <token> T_ASSIGN T_SWAP
+%token <token> T_EQ T_NOTEQ T_LESS T_LESSEQ T_GREATER T_GREATEREQ
+%token <token> T_ADD T_MINUS T_DIV T_MUL T_MODULUS
+%token <token> T_AND T_OR
+%token <token> T_LPAREN T_RPAREN T_LSBRACKET T_RSBRACKET T_COMMA T_DOT T_NOT T_COLON T_QUESTIONMARK
+%token <string> T_IDENTIFIER T_INTEGER_VAL T_RATIONAL_VAL T_STRING_VAL T_TRUE T_FALSE
+%token <token> T_INDENT T_OUTDENT
+%token T_ENDOFFILE
+
+%type <block> program stmts block
+%type <stmt> stmt
 
 %left T_OR
 %left T_AND
@@ -77,20 +115,62 @@
 %left T_MUL T_DIV T_MODULUS
 %precedence T_NOT
 
+%start program
+
+%locations
+
 %%
 
-start:
+program:
     stmts
     {
-        std::cout << "stmts ->" << std::endl;
+        driver.set_ast_root($1);
+        std::cout << "stmts <<EOF>>" << std::endl;
+        std::cout << "program_block = stmts";
     }
+;
 
-func_decl :
-    T_FUNCTION type_specifier T_IDENTIFIER T_LPAREN func_decl_args T_RPAREN T_NEWLINE stmts T_FUNCTION T_END
+stmts:
+    stmt
     {
-        std::cout << "func_decl => type_specifier T_IDENTIFIER T_LPAREN func_decl_args T_RPAREN" << std::endl;
+        $$ = new NBlock();
+        $$->statements.push_back($<stmt>1);
+        std::cout << "stmts -> stmt" << std::endl;
+    }
+|   
+    stmts stmt
+    {
+        $1->statements.push_back($<stmt>2);
+        std::cout << "stmts -> stmts stmt" << std::endl;
+    }
+;
 
-        
+stmt:
+    var_decl close
+    {
+        std::cout << "stmts => var_decl" << std::endl;
+    }
+|
+    func_decl close
+    {
+        std::cout << "stmts => func_decl" << std::endl;
+    }
+|
+    assign_stmt close
+    {
+        std::cout << "stmts => assign_stmt" << std::endl;
+    }
+|
+    expr close
+    {
+        std::cout << "stmts => expr" << std::endl;
+    }
+;
+
+func_decl:
+    T_FUNCTION type_specifier T_IDENTIFIER T_LPAREN func_decl_args T_RPAREN close block T_FUNCTION T_END
+    {
+        std::cout << "func_decl_stmt => T_FUNCTION type_specifier T_IDENTIFIER T_LPAREN func_decl_args T_RPAREN block T_FUNCTION T_END" << std::endl;
     }
 ;
 
@@ -99,11 +179,11 @@ func_decl_args :
     { 
         std::cout << "function_decl_args => empty" << std::endl;
     }
-    | var_decl 
+    | var_decl
     {
         std::cout << "func_decl_args => var_decl" << std::endl;
     }
-    | func_decl_args T_COMMA var_decl 
+    | func_decl_args T_COMMA var_decl
     {
         std::cout << "funcition_decl_args => func_decl_args T_COMMA var_decl" << std::endl;
     }
@@ -119,51 +199,57 @@ var_decl :
         std::cout << "var_decl => T_IDENTIFIER type_specifier T_IDENTIFIER" << std::endl;
     }
 ;
-
-stmts:
-    stmt
+	
+assign_stmt:
+    T_IDENTIFIER T_ASSIGN expr
     {
-        std::cout << "stmts -> stmt" << std::endl;
-    }
-|   stmts stmt
-    {
-        std::cout << "stmts -> stmts stmt" << std::endl;
-    }
-
-stmt:
-    var_decl end_stmt
-    {
-        std::cout << "stmts => var_decl" << std::endl;
-    }
-    | func_decl end_stmt
-    {
-        std::cout << "stmts => func_decl" << std::endl;
-    }
-    | expr end_stmt
-    {
-        std::cout << "stmts => expr" << std::endl;
+        std::cout << "assign_statement -> T_IDENTIFIER T_ASSIGN expr" << std::endl;
     }
 ;
 
-end_stmt:
+
+block:
+    T_INDENT stmts T_OUTDENT
+    {
+        $$ = $2;
+    }
+|   T_INDENT T_OUTDENT
+    {
+        $$ = new NBlock();
+    }
+
+
+close:
     T_COMMA
-    | T_NEWLINE
+    {
+        std::cout << "close -> comma" << std::endl;
+    }
+|
+    T_NEWLINE
+    {
+        std::cout << "close -> newline" << std::endl;
+    }
 
 expr:
-    assign_stmt end_stmt 
-|   func_call 
-|   T_IDENTIFIER
+    func_call 
     {
     }
-|   numeric 
+|   
+    T_IDENTIFIER
+    {
+    }
+|   
+    numeric 
     {
 
     }
-|   logical
+|   
+    logical
     {
         std::cout << "expr -> logical" << std::endl;
     }
-|   expr T_ADD expr
+|   
+    expr T_ADD expr
     {
         std::cout << "expr -> expr T_ADD expr" << std::endl;
     }
@@ -235,13 +321,6 @@ expr:
 |   T_LPAREN expr T_RPAREN
     {
     }
-	
-assign_stmt:
-    T_IDENTIFIER T_ASSIGN expr
-    {
-        std::cout << "assign_statement -> T_IDENTIFIER T_ASSIGN expr" << std::endl;
-    }
-;
 
 func_call:
     T_IDENTIFIER T_LPAREN call_args T_RPAREN
@@ -532,3 +611,7 @@ expression:
     }*/
 %%
 
+void Pseudo::Parser::error(const location_type& l, const std::string& err_message)
+{
+    std::cerr << "Error: " << err_message << " at " << l << std::endl;
+}

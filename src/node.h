@@ -1,10 +1,17 @@
+#ifndef H_NODE
+#define H_NODE
+
 #include <string>
 #include <vector>
 #include <memory>
 
-typedef std::vector<std::shared_ptr<NStatement>> StatementList;
-typedef std::vector<std::shared_ptr<NExpression>> ExpressionList;
-typedef std::vector<std::shared_ptr<NVariableDeclarationStatement>> VariableList;
+class NStatement;
+class NExpression;
+class NVariableDeclarationStatement;
+
+typedef std::vector<NStatement*> StatementList;
+typedef std::vector<NExpression*> ExpressionList;
+typedef std::vector<NVariableDeclarationStatement*> VariableList;
 
 class Node 
 {
@@ -26,9 +33,9 @@ class NExpression : public Node
 class NInteger : public NExpression 
 {
 public:
-    int m_value;
+    int value;
 
-    NInteger(int value) : m_value(value)
+    NInteger(int value) : value(value)
     {
     }
 };
@@ -36,9 +43,9 @@ public:
 class NRational : public NExpression
 {
 public:
-    double m_value;
+    double value;
 
-    NRational(double value) : m_value(value)
+    NRational(double value) : value(value)
     {
     }
 };
@@ -46,8 +53,8 @@ public:
 class NIdentifier : public NExpression
 {
 public:
-    std::string m_name;
-    NIdentifier(const std::string& name) : m_name(name)
+    std::string name;
+    NIdentifier(const std::string& name) : name(name)
     {
     }
 };
@@ -55,14 +62,14 @@ public:
 class NFunctionCall : public NExpression
 {
 public:
-    const NIdentifier& m_id;
-    ExpressionList m_args;
+    const NIdentifier& id;
+    ExpressionList args;
     NFunctionCall(const NIdentifier& id, const ExpressionList& args) 
-    : m_id(id), m_args(args)
+    : id(id), args(args)
     {
     }
 
-    NFunctionCall(const NIdentifier& id) : m_id(id)
+    NFunctionCall(const NIdentifier& id) : id(id)
     {
     }
 };
@@ -70,12 +77,12 @@ public:
 class NBinaryOperator : public NExpression
 {
 public:
-    int m_op;
-    const NExpression& m_lhs;
-    const NExpression& m_rhs;
+    int op;
+    const NExpression& lhs;
+    const NExpression& rhs;
 
     NBinaryOperator(const NExpression& lhs, int op, const NExpression& rhs) 
-    : m_op(op), m_lhs(lhs), m_rhs(rhs)
+    : op(op), lhs(lhs), rhs(rhs)
     {
     }
 };
@@ -83,22 +90,29 @@ public:
 class NAssignment : public NExpression
 {
 public:
-    const NIdentifier& m_id;
-    const NExpression& m_expr;
+    const NIdentifier& id;
+    const NExpression& expr;
 
     NAssignment(const NIdentifier& id, const NExpression& expr) 
-    : m_id(id), m_expr(expr)
+    : id(id), expr(expr)
     {
     }
+};
+
+class NBlock : public NExpression
+{
+public:
+    StatementList statements;
+    NBlock();
 };
 
 class NExpressionStatement : public NStatement
 {
 public:
-    const NExpression& m_expression;
+    const NExpression& expression;
 
     NExpressionStatement(const NExpression& expression) 
-    : m_expression(expression)
+    : expression(expression)
     {
     }
 };
@@ -106,18 +120,18 @@ public:
 class NVariableDeclarationStatement : public NStatement
 {
 public:
-    const NIdentifier& m_type;
-    const NIdentifier& m_id;
-    const std::shared_ptr<NExpression> m_assignmentExpr;
+    const NIdentifier& type;
+    const NIdentifier& id;
+    const NExpression* assignmentExpr;
 
     NVariableDeclarationStatement(const NIdentifier& type, NIdentifier& id)
-    : m_type(type), m_id(id)
+    : type(type), id(id)
     {
     }
 
     NVariableDeclarationStatement(const NIdentifier& type, NIdentifier& id,
-    std::shared_ptr<NExpression> assignmentExpr)
-    : m_type(type), m_id(id), m_assignmentExpr(assignmentExpr)
+    NExpression* assignmentExpr)
+    : type(type), id(id), assignmentExpr(assignmentExpr)
     {
     }
 };
@@ -125,14 +139,15 @@ public:
 class NFunctionDeclaration : public NStatement
 {
 public:
-    const NIdentifier& m_type;
-    const NIdentifier& m_id;
-    VariableList m_args;
-    StatementList m_statements;
+    const NIdentifier& type;
+    const NIdentifier& id;
+    VariableList args;
+    StatementList statements;
 
     NFunctionDeclaration(const NIdentifier& type, const NIdentifier& id,
         VariableList args, StatementList statements)
-        : m_type(type), m_id(id), m_args(args), m_statements(statements)
+        : type(type), id(id), args(args), statements(statements)
     {
     }
 };
+#endif

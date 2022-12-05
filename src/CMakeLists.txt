@@ -1,28 +1,26 @@
-cmake_minimum_required(VERSION 3.0.0)
-project(Pseudo VERSION 0.0.1)
-
-include(CTest)
-enable_testing()
-
 find_package(BISON)
 find_package(FLEX)
 
-BISON_TARGET(Parser parser.y ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp
-            DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/parser.h)
-FLEX_TARGET(Lexer lexer.l ${CMAKE_CURRENT_BINARY_DIR}/lexer.cpp)
+BISON_TARGET(Parser parser.y ${CMAKE_CURRENT_SOURCE_DIR}/parser.cpp
+            COMPILE_FLAGS -Wconflicts-sr
+            DEFINES_FILE ${CMAKE_CURRENT_SOURCE_DIR}/parser.h)
+FLEX_TARGET(Lexer lexer.l ${CMAKE_CURRENT_SOURCE_DIR}/lexer.cpp)
 
 ADD_FLEX_BISON_DEPENDENCY(Lexer Parser)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(pseudo
-    main.cpp
-    ${BISON_Parser_OUTPUTS}
-    ${FLEX_Lexer_OUTPUTS}
+file(GLOB_RECURSE PSEUDO_SOURCES
+  *.cpp
+  *.h
 )
 
-target_link_libraries(pseudo ${FLEX_LIBRARIES})
+add_executable(pseudo
+  ${BISON_Parser_OUTPUTS}
+  ${FLEX_Lexer_OUTPUTS}
+  ${PSEUDO_SOURCES}
+)
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+
+#target_link_libraries(pseudo
+#)

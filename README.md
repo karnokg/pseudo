@@ -4,21 +4,29 @@
 
 ### Features
 
+### Types
+- [ ] Integer
+- [ ] Rational
+- [ ] String
+- [ ] Logical
+- [ ] Array
+- [ ] Pointer
+
 ### Syntax
 
 ### Example codes
 
 ### TODOs
 - [x] Use cmake
-- [ ] Restructure project folder like `https://gitlab.com/CLIUtils/modern-cmake/-/tree/master/examples/extended-project/src`
-- [ ] Rewrite building source section
+- [x] Restructure project folder like `https://gitlab.com/CLIUtils/modern-cmake/-/tree/master/examples/extended-project/src`
+- [x] Rewrite building source section
 - [x] Lexer
 	- [x] Tab based indentation
 	- [x] Tokens
 - [ ] Parser (Grammar) 
 	- [x] Variable declaration statement
 	- [x] Function declaration statement
-	- [ ] Variable assignment statement
+	- [x] Variable assignment statement
 	- [x] Integer variable type
 	- [x] Rational variable type
 	- [x] Logical variable type
@@ -31,6 +39,7 @@
 	- [ ] Pointers?
 
 - [ ] Semantics 
+	- [x] Tab based indentation only, error on space!
 - [ ] Code generation
 - [ ] Debug informations
 
@@ -49,8 +58,13 @@
 1. Checkout Pseudo:
 	* `git clone https://github.com/karnokg/pseudo.git`
 
-2. Build using CMake:
-	* `TODO`
+2. Create build directory:
+	* `mkdir -p build`
+	
+3. Run CMake:
+	* `cd build`
+	* `cmake ..`
+	* `cmake --build .`
 
 3. Done!
 
