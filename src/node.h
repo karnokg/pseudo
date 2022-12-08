@@ -5,149 +5,183 @@
 #include <vector>
 #include <memory>
 
-class NStatement;
-class NExpression;
-class NVariableDeclarationStatement;
+namespace Pseudo {
 
-typedef std::vector<NStatement*> StatementList;
-typedef std::vector<NExpression*> ExpressionList;
-typedef std::vector<NVariableDeclarationStatement*> VariableList;
+class Statement;
+class Expression;
+class VariableDeclarationStatement;
+
+typedef std::vector<Statement*> StatementList;
+typedef std::vector<Expression*> ExpressionList;
+typedef std::vector<VariableDeclarationStatement*> VariableList;
 
 class Node 
 {
-    public:
-        virtual ~Node() {}
-        // virtual llvm::Value* codeGen(CodeGenContext& context) {}
+public:
+    virtual ~Node() {}
+    //virtual llvm::Value* codeGen(CodeGenContext& context) = 0;
 };
 
-class NStatement : public Node 
+class Statement : public Node 
 {
 
 };
 
-class NExpression : public Node 
+class Expression : public Node 
 {
 
 };
 
-class NInteger : public NExpression 
+class Integer : public Expression 
 {
 public:
     int value;
 
-    NInteger(int value) : value(value)
+    Integer(int value) : value(value)
     {
     }
 };
 
-class NRational : public NExpression
+class Rational : public Expression
 {
 public:
     double value;
 
-    NRational(double value) : value(value)
+    Rational(double value) : value(value)
     {
     }
 };
 
-class NIdentifier : public NExpression
+class Identifier : public Expression
 {
 public:
     std::string name;
-    NIdentifier(const std::string& name) : name(name)
+    Identifier(const std::string& name) : name(name)
     {
     }
 };
 
-class NFunctionCall : public NExpression
+class FunctionCall : public Expression
 {
 public:
-    const NIdentifier& id;
-    ExpressionList args;
-    NFunctionCall(const NIdentifier& id, const ExpressionList& args) 
+    Identifier* id;
+    ExpressionList* args;
+    FunctionCall(Identifier* id, ExpressionList* args) 
     : id(id), args(args)
     {
     }
 
-    NFunctionCall(const NIdentifier& id) : id(id)
+    FunctionCall(Identifier* id) : id(id)
     {
     }
 };
 
-class NBinaryOperator : public NExpression
+class BinaryOperator : public Expression
 {
 public:
     int op;
-    const NExpression& lhs;
-    const NExpression& rhs;
+    Expression* lhs;
+    Expression* rhs;
 
-    NBinaryOperator(const NExpression& lhs, int op, const NExpression& rhs) 
+    BinaryOperator(Expression* lhs, int op, Expression* rhs) 
     : op(op), lhs(lhs), rhs(rhs)
     {
     }
 };
 
-class NAssignment : public NExpression
+class Assignment : public Expression
 {
 public:
-    const NIdentifier& id;
-    const NExpression& expr;
+    Identifier* id;
+    Expression* expr;
 
-    NAssignment(const NIdentifier& id, const NExpression& expr) 
+    Assignment(Identifier* id, Expression* expr) 
     : id(id), expr(expr)
     {
     }
 };
 
-class NBlock : public NExpression
+class Block : public Expression
 {
 public:
     StatementList statements;
-    NBlock() {}
+    Block() {}
 };
 
-class NExpressionStatement : public NStatement
+class Array : public Expression
+{
+    ExpressionList exprs;
+    Array()
+    {
+    }
+
+    Array(ExpressionList& exprs) : exprs(exprs)
+    {
+    } 
+};
+
+class ArrayAccess : public Expression
+{
+};
+
+class ArrayAddElement : public Expression
+{
+};
+
+class Return : public Statement 
+{
+    Expression* expr;
+
+    Return(Expression* expr)
+    : expr(expr)
+    {
+    }
+};
+
+class ExpressionStatement : public Statement
 {
 public:
-    const NExpression& expression;
+    Expression* expression;
 
-    NExpressionStatement(const NExpression& expression) 
+    ExpressionStatement(Expression* expression) 
     : expression(expression)
     {
     }
 };
 
-class NVariableDeclarationStatement : public NStatement
+class VariableDeclarationStatement : public Statement
 {
 public:
-    const NIdentifier& type;
-    const NIdentifier& id;
-    const NExpression* assignmentExpr;
+    Identifier* type;
+    Identifier* id;
+    Expression* assignmentExpr;
 
-    NVariableDeclarationStatement(const NIdentifier& type, NIdentifier& id)
+    VariableDeclarationStatement(Identifier* type, Identifier* id)
     : type(type), id(id)
     {
     }
 
-    NVariableDeclarationStatement(const NIdentifier& type, NIdentifier& id,
-    NExpression* assignmentExpr)
+    VariableDeclarationStatement(Identifier* type, Identifier* id,
+    Expression* assignmentExpr)
     : type(type), id(id), assignmentExpr(assignmentExpr)
     {
     }
 };
 
-class NFunctionDeclaration : public NStatement
+class FunctionDeclaration : public Statement
 {
 public:
-    const NIdentifier& type;
-    const NIdentifier& id;
-    VariableList args;
-    StatementList statements;
+    const Identifier* type;
+    const Identifier* id;
+    VariableList* args;
+    Block* block;
 
-    NFunctionDeclaration(const NIdentifier& type, const NIdentifier& id,
-        VariableList args, StatementList statements)
-        : type(type), id(id), args(args), statements(statements)
+    FunctionDeclaration(Identifier* type, Identifier* id,
+        VariableList* args, Block* block)
+        : type(type), id(id), args(args), block(block)
     {
     }
 };
+
+}
 #endif

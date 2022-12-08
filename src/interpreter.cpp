@@ -58,12 +58,12 @@ int Pseudo::Interpreter::parse_helper(std::istream& stream)
     return parser->parse();
 }
 
-NBlock* Pseudo::Interpreter::get_ast_root()
+Pseudo::Block* Pseudo::Interpreter::get_ast_root()
 {
     return program_block;
 }
 
-void Pseudo::Interpreter::set_ast_root(NBlock* root)
+void Pseudo::Interpreter::set_ast_root(Pseudo::Block* root)
 {
     program_block = root;
 }

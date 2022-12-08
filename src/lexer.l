@@ -77,6 +77,8 @@ using token = Pseudo::Parser::token;
 <initial>\n {
     indent_caller = normal;
     yyless(0);
+    //std::cerr << "Lexical Analyis: There are new line characters `\\n` on the top of the file, please remove them." << std::endl;
+    //exit(1);
     BEGIN(indent);
 }   
 
@@ -191,7 +193,7 @@ using token = Pseudo::Parser::token;
 <normal>\n {
     g_current_line_indent = 0;
     indent_caller = YY_START;
-    unput('\n'); /* handle new line in indentations! */
+    unput('\n'); /* let indent mode handle new lines! */
     BEGIN(indent); 
 }
 

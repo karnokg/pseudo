@@ -35,5 +35,9 @@ int main(int argc, char* argv[])
     std::string file(argv[1]);
 
     Pseudo::Interpreter driver;
-    return driver.parse(file);
+    int result = driver.parse(file);
+
+    std::cout << driver.get_ast_root()->statements.size();
+
+    return result;
 }

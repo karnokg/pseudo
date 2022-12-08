@@ -20,9 +20,10 @@
 - [x] Use cmake
 - [x] Restructure project folder like `https://gitlab.com/CLIUtils/modern-cmake/-/tree/master/examples/extended-project/src`
 - [x] Rewrite building source section
-- [x] Lexer
+- [ ] Lexer
 	- [x] Tab based indentation
 	- [x] Tokens
+	- [ ] Add ENDOFFILE token
 - [ ] Parser (Grammar) 
 	- [x] Variable declaration statement
 	- [x] Function declaration statement
@@ -52,6 +53,7 @@
 * flex 2.6.4
 * bison 3.8.2
 * LLVM version
+* (Doxygen 1.9.1 and graphviz 2.43.0 for pretty diagrams)
 
 ### Building the Source code
 

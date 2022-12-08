@@ -8,7 +8,7 @@
 #include "scanner.h"
 #include "parser.h"
 
-class NBlock;
+class Block;
 
 namespace Pseudo {
 
@@ -21,15 +21,15 @@ public:
     int parse(const std::string& file);
     int parse(std::istream& iss);
 
-    void set_ast_root(NBlock* root);
-    NBlock* get_ast_root();
+    void set_ast_root(Block* root);
+    Block* get_ast_root();
 
 private:
     int parse_helper(std::istream& stream);
     Pseudo::Parser* parser = nullptr;
     Pseudo::Scanner* scanner = nullptr;
 
-    NBlock* program_block = nullptr;
+    Block* program_block = nullptr;
 };
 
 }

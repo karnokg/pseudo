@@ -34,43 +34,11 @@
 %define parse.assert
 %define parse.error detailed
 
-/*
-%code top {
-    #include <iostream>
-    #include <vector>
-    #include "scanner.h"
-    #include "parser.h"
-    #include "interpreter.h"
-    #include "location.hh"
-
-    static int yylex(Scanner& scanner, Interpreter& driver) {
-        return scanner.get_next_token();
-    }
-
-    static int yylex(yy::Parser::value_type* value_type, yy::Parser::location_type* location_type, Scanner& scanner, Interpreter& driver) {
-        return scanner.get_next_token();
-    }
-
-    // or #define yylex(x, y) scanner.get_net_token()
-}
-
-%code requires {
-    #include "node.h"
-    class Scanner;
-    class Interpreter;
-}
-
-%lex-param { Scanner& scanner }
-%lex-param { Interpreter& driver }
-
-%parse-param { Scanner& scanner }
-%parse-param { Interpreter& driver }
-*/
-
 %union {
-    Node* node;
-    NBlock* block;
-    NStatement* stmt;
+    Pseudo::Node* node;
+    Pseudo::Block* block;
+    Pseudo::Statement* stmt;
+    Pseudo::Expression* expr;
     std::string* string;
     int token;
 }
@@ -105,7 +73,8 @@
 %token T_ENDOFFILE
 
 %type <block> program stmts block
-%type <stmt> stmt
+%type <stmt> stmt var_decl
+%type <expr> expr
 
 %left T_OR
 %left T_AND
@@ -122,25 +91,34 @@
 %%
 
 program:
+    %empty
+    {
+        driver.set_ast_root(new Pseudo::Block());
+    }
+|
     stmts
     {
         driver.set_ast_root($1);
         std::cout << "stmts <<EOF>>" << std::endl;
-        std::cout << "program_block = stmts";
     }
 ;
 
 stmts:
     stmt
     {
-        $$ = new NBlock();
+        std::cout << "a";
+        $$ = new Pseudo::Block();
+        std::cout << "b";
         $$->statements.push_back($<stmt>1);
+        std::cout << "c";
         std::cout << "stmts -> stmt" << std::endl;
     }
 |   
     stmts stmt
     {
+        std::cout << "d";
         $1->statements.push_back($<stmt>2);
+        std::cout << "e";
         std::cout << "stmts -> stmts stmt" << std::endl;
     }
 ;
@@ -148,22 +126,23 @@ stmts:
 stmt:
     var_decl close
     {
-        std::cout << "stmts => var_decl" << std::endl;
+        std::cout << "stmts => var_decl close" << std::endl;
     }
 |
     func_decl close
     {
-        std::cout << "stmts => func_decl" << std::endl;
+        std::cout << "stmts => func_decl close" << std::endl;
     }
 |
     assign_stmt close
     {
-        std::cout << "stmts => assign_stmt" << std::endl;
+        std::cout << "stmts => assign_stmt close" << std::endl;
     }
 |
     expr close
     {
-        std::cout << "stmts => expr" << std::endl;
+        std::cout << "stmts => expr close" << std::endl;
+        $$ = new Pseudo::ExpressionStatement($1);
     }
 ;
 
@@ -179,11 +158,13 @@ func_decl_args :
     { 
         std::cout << "function_decl_args => empty" << std::endl;
     }
-    | var_decl
+|
+    var_decl
     {
         std::cout << "func_decl_args => var_decl" << std::endl;
     }
-    | func_decl_args T_COMMA var_decl
+|
+    func_decl_args T_COMMA var_decl
     {
         std::cout << "funcition_decl_args => func_decl_args T_COMMA var_decl" << std::endl;
     }
@@ -215,9 +196,8 @@ block:
     }
 |   T_INDENT T_OUTDENT
     {
-        $$ = new NBlock();
+        $$ = new Pseudo::Block();
     }
-
 
 close:
     T_COMMA
@@ -229,6 +209,7 @@ close:
     {
         std::cout << "close -> newline" << std::endl;
     }
+;
 
 expr:
     func_call 
@@ -321,6 +302,7 @@ expr:
 |   T_LPAREN expr T_RPAREN
     {
     }
+;
 
 func_call:
     T_IDENTIFIER T_LPAREN call_args T_RPAREN
@@ -364,6 +346,7 @@ logical:
     {
         std::cout << "logical -> T_FALSE" << std::endl;
     }
+;
 
 type_specifier:
     T_BOOLEAN
