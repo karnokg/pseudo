@@ -1,8 +1,9 @@
 %option c++ 
-%option debug
+/*%option debug*/
 %option yyclass="Pseudo::Scanner"
 %option noyywrap 
-/*%option yylineno */
+%option nodefault
+/*%option yylineno*/
 
 %{
 #include <iostream>
@@ -15,7 +16,8 @@
 
 using token = Pseudo::Parser::token;
 
-/*#define yyterminate() return (token::T_ENDOFFILE)*/
+//#define yyterminate() return (token::T_ENDOFFILE)
+#define yyterminate() return YY_NULL
 
 #define YY_NO_UNISTD_H
 
@@ -83,6 +85,7 @@ using token = Pseudo::Parser::token;
 }   
 
 <indent>" " {
+
     std::cerr << "Lexical Analysis: You use space based indentation, which is not supported." << std::endl;
     exit(1);
 }
@@ -310,6 +313,16 @@ void {
     return token::T_VOID;
 }
 
+Letrehoz {
+    PRINT_TOKEN("T_CREATEVECTOR");
+    return token::T_CREATEVECTOR;
+}
+
+TablaLetrehoz {
+    PRINT_TOKEN("T_CREATEMATRIX");
+    return token::T_CREATEMATRIX;
+}
+
 "<-" {
     PRINT_TOKEN("T_ASSIGN");
     return token::T_ASSIGN;
@@ -437,20 +450,24 @@ void {
 
 [a-zA-Z_][a-zA-Z0-9_]* {
     PRINT_TOKEN("T_IDENTIFIER");
+    yylval->string = new std::string(YYText(), YYLeng());
     return token::T_IDENTIFIER;
 }
 
 [0-9]+ {
     PRINT_TOKEN("T_INTEGER_VAL");
+    yylval->integer = std::stoll(std::string(YYText(), YYLeng()));
     return token::T_INTEGER_VAL;
 }
 
 [0-9]+\.[0-9]* {
     PRINT_TOKEN("T_RATIONAL_VAL");
+    yylval->rational = std::stod(std::string(YYText(), YYLeng()));
     return token::T_RATIONAL_VAL;
 }
 
 . {
+	std::cout << loc->begin.line << loc->begin.column << std::endl;
     std::cout << "unexpected character '" << YYText() << "' at '" << lineno() << ":" << col << "'" << std::endl;
     exit(1);
 }

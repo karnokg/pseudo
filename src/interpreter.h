@@ -4,6 +4,7 @@
 #include <string>
 #include <cstddef>
 #include <istream>
+#include <iostream>
 
 #include "scanner.h"
 #include "parser.h"
@@ -15,7 +16,7 @@ namespace Pseudo {
 class Interpreter 
 {
 public:
-    Interpreter() = default;
+    Interpreter();
     virtual ~Interpreter();
 
     int parse(const std::string& file);
@@ -26,9 +27,6 @@ public:
 
 private:
     int parse_helper(std::istream& stream);
-    Pseudo::Parser* parser = nullptr;
-    Pseudo::Scanner* scanner = nullptr;
-
     Block* program_block = nullptr;
 };
 

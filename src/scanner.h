@@ -26,7 +26,8 @@ public:
     using FlexLexer::yylex;
 
     virtual int yylex(Pseudo::Parser::semantic_type* const lval,
-            Pseudo::Parser::location_type* location);
+        Pseudo::Parser::location_type* location);
+
 private:
     Pseudo::Parser::semantic_type* yylval = nullptr;
     Pseudo::Parser::location_type* loc = nullptr;

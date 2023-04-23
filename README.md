@@ -5,12 +5,12 @@
 ### Features
 
 ### Types
-- [ ] Integer
-- [ ] Rational
-- [ ] String
-- [ ] Logical
-- [ ] Array
-- [ ] Pointer
+- [x] Integer
+- [x] Rational
+- [x] ~~String~~ 
+- [x] Logical
+- [x] Array
+- [ ] ~~Pointer~~
 
 ### Syntax
 
@@ -20,11 +20,11 @@
 - [x] Use cmake
 - [x] Restructure project folder like `https://gitlab.com/CLIUtils/modern-cmake/-/tree/master/examples/extended-project/src`
 - [x] Rewrite building source section
-- [ ] Lexer
+- [x] Lexer
 	- [x] Tab based indentation
 	- [x] Tokens
-	- [ ] Add ENDOFFILE token
-- [ ] Parser (Grammar) 
+	- [ ] ~~Add ENDOFFILE token~~
+- [x] Parser (Grammar) 
 	- [x] Variable declaration statement
 	- [x] Function declaration statement
 	- [x] Variable assignment statement
@@ -33,11 +33,12 @@
 	- [x] Logical variable type
 	- [x] Binary operators
 	- [x] Identifiers 
-	- [ ] If statement
-	- [ ] For statements
-	- [ ] Return statements
-	- [ ] Arrays
-	- [ ] Pointers?
+	- [x] If statement
+	- [x] For statements
+	- [x] Return statements
+	- [x] Vectors 
+	- [x] Matrices
+	- [x] Function calls
 
 - [ ] Semantics 
 	- [x] Tab based indentation only, error on space!
@@ -45,6 +46,8 @@
 - [ ] Debug informations
 
 - [ ] Tests
+ 
+- [ ] GUI to run + debug
 
 ## Technical stuff
 

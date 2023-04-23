@@ -1,0 +1,14 @@
+fuggveny matrixok()
+	Letrehoz(egesz)[6]
+	TablaLetrehoz(egesz)[6, 5]
+
+	x <- Letrehoz(egesz)[2]
+	y <- TablaLetrehoz(egesz)[7, 9]
+
+	x[7]
+	y[132,5435]
+
+	x[6] <- 9
+	y[2,78] <- 19
+
+fuggveny vege

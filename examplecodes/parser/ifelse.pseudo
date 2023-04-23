@@ -1,0 +1,16 @@
+fuggveny ifelse()
+	ha (xi = yj) akkor
+		valami1()
+	elagazas vege
+	valami2()
+	ha (igaz && (xi = yj && xi = yj)) akkor
+		valami2()
+	kulonben
+		ha (igaz) akkor
+			valami3()
+		kulonben
+			valami4(), valami5()
+		elagazas vege
+		valami6()
+	elagazas vege
+fuggveny vege

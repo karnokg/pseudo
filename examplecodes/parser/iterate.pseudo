@@ -1,0 +1,18 @@
+fuggveny iterators()
+	ciklus amig igaz || hamis
+		valami()
+	ciklus vege
+	ciklus amig r =/= 0
+		m <- n, n <- r, r <- m mod n
+	ciklus vege
+	ciklus
+		utasitas1()
+		x = y
+	amig x =/= y, y = 2
+	ciklus num <- 0-tol 9-ig
+		utasitas2()
+		utasitas3()
+	ciklus vege
+
+	vissza 2
+fuggveny vege

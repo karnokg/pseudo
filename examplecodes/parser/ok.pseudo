@@ -1,4 +1,5 @@
-fuggveny void asd (a: egesz, b: logikai <- igaz) 
+fuggveny asd (a: egesz, b: logikai <- igaz) 
 	a : egesz <- asd(4, 2)
+	a <- asd(4, 2)
 	asd(4, 2), asd(4, 2)
 fuggveny vege

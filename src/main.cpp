@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include "interpreter.h"
 /*
 int yylex(yy::parser::semantic_type* yylval, yy::parser::location_type* yylloc)
@@ -23,7 +24,6 @@ void yy::parser::error(const location_type& loc, const std::string& msg) {
     exit(1);
 }
 */
-
 int main(int argc, char* argv[])
 {
     if (argc != 2)
@@ -37,7 +37,9 @@ int main(int argc, char* argv[])
     Pseudo::Interpreter driver;
     int result = driver.parse(file);
 
-    std::cout << driver.get_ast_root()->statements.size();
+    //if (driver.get_ast_root() != nullptr) {
+    //    std::cout << driver.get_ast_root()->statements.size();
+    //}
 
     return result;
 }
