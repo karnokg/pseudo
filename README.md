@@ -57,6 +57,8 @@
 
 ### Building the Source code
 
+Only tested on linux!
+
 1. Checkout Pseudo:
 	* `git clone https://github.com/karnokg/pseudo.git`
 
