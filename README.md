@@ -77,7 +77,6 @@ Once you've got the file, you can compile it with the clang.
 
 * To executable: 
     * `./pseudo <filename> 2> program.ll`
-	* `llc program.ll`
 	* `clang program.ll -g -O0 -o program.out externfunctions.cpp`
 	* `./program.out`
 
