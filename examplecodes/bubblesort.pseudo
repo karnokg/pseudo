@@ -13,11 +13,7 @@ fuggveny vege
 
 Kimenet: nincs
 fuggveny tombKiir(X: egesz tomb, n: egesz)
-#	egeszKiir(n), sorKiir("<- eddig megy!")
-
 	ciklus i <- 1-tol n-ig
-#		egeszKiir(i), sorKiir("<- itt az i")
-#		egeszKiir(X[i]), sorKiir("<- jelenlegi ertek")
 		egeszKiir(X[i])
 		kiir(", ")
 	ciklus vege

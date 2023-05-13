@@ -14,10 +14,6 @@ int egeszKiir(int val)
     return 1;
 }
 
-#ifdef __cplusplus
-}
-#endif
-
 int logikaiKiir(int val)
 {
     if (val)
@@ -58,3 +54,7 @@ int abszolut(int val)
 {
     return abs(val);
 }
+
+#ifdef __cplusplus
+}
+#endif
