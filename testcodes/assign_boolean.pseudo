@@ -1,0 +1,11 @@
+i <- igaz
+sorKiir("EXP igaz")
+kiir("GOT ")
+logikaiKiir(i)
+ujsor()
+
+i <- hamis
+sorKiir("EXP hamis")
+kiir("GOT ")
+logikaiKiir(i)
+ujsor()

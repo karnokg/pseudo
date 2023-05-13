@@ -1,0 +1,4 @@
+i <- "asd"
+sorKiir("EXP asd")
+kiir("GOT ")
+kiir(i)

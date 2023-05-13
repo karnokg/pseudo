@@ -1,86 +1,43 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(pseudo VERSION 0.0.1 LANGUAGES CXX C)
 
-find_package(BISON)
-find_package(FLEX)
-find_package(LLVM REQUIRED CONFIG)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+include(GNUInstallDirs)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY
+  ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY
+  ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_LIBDIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY
+  ${CMAKE_BINARY_DIR}/${CMAKE_INSTALL_BINDIR})
 
-# -report=solved
-# -Wcounterexamples
-BISON_TARGET(Parser parser.y ${CMAKE_CURRENT_SOURCE_DIR}/parser.cpp
-            COMPILE_FLAGS "-Wconflicts-sr -t -Dparse.trace"
-            DEFINES_FILE ${CMAKE_CURRENT_SOURCE_DIR}/parser.h)
-FLEX_TARGET(Lexer lexer.l ${CMAKE_CURRENT_SOURCE_DIR}/lexer.cpp)
+enable_testing()
 
-ADD_FLEX_BISON_DEPENDENCY(Lexer Parser)
+add_subdirectory(compiler)
+add_subdirectory(tests)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+# first we can indicate the documentation build as an option and set it to ON by default
+#option(BUILD_DOC "Build documentation" ON)
 
-include_directories(${LLVM_INCLUDE_DIRS})
-separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-add_definitions(${LLVM_DEFINITIONS_LIST})
+#find_package(Doxygen)
 
-message("asdasdasdasd")
-message(${LLVM_INCLUDE_DIRS})
-
-#file(GLOB_RECURSE PSEUDO_SOURCES
-#  *.cpp
-#  *.h
-#)
-
-set(PSEUDO_SOURCES
-  externfunctions.cpp
-  main.cpp
-  CodeGenContext.cpp
-  interpreter.cpp
-  pseudo.cpp
-  visitor.cpp
-  visitorprintast.cpp
-  visitorsyntaxcheck.cpp
-  nodes/node.cpp
-  nodes/binaryoperator.cpp
-  nodes/functiondeclaration.cpp
-  nodes/unaryoperator.cpp
-  nodes/variabledeclaration.cpp
-  nodes/compareoperator.cpp
-  nodes/assignment.cpp
-  nodes/string.cpp
-  nodes/vector.cpp
-  nodes/forloop.cpp
-)
-
-set(PSEUDO_HEADERS
-  externfunctions.h
-  CodeGenContext.h
-  interpreter.h
-  node.h
-  pseudo.h
-  scanner.h
-  visitor.h
-  visitorprintast.h
-  visitorsyntaxcheck.h
-  nodes/binaryoperator.h
-  nodes/functiondeclaration.h
-  nodes/unaryoperator.h
-  nodes/variabledeclaration.h
-  nodes/compareoperator.h
-  nodes/assignment.h
-  nodes/string.h
-  nodes/vector.h
-  nodes/forloop.h
-)
-
-add_executable(pseudo
-  ${BISON_Parser_OUTPUTS}
-  ${FLEX_Lexer_OUTPUTS}
-  ${PSEUDO_SOURCES}
-  ${PSEUDO_HEADERS}
-)
-
-set (CMAKE_CXX_FLAGS "-lSegFault")
-
-llvm_map_components_to_libnames(llvm_libs support core irreader mcjit native interpreter ipo)
-target_link_libraries(pseudo ${llvm_libs})
+#if (DOXYGEN_FOUND)
+#    # set input and output files
+#    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
+#    set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.out)
+#
+#    # request to configure the file
+#    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+#    message("Doxygen build started")
+#
+#    # Note: do not put "ALL" - this builds docs together with application EVERY TIME!
+#    add_custom_target( docs
+#        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+#        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+#        COMMENT "Generating API documentation with Doxygen"
+#        VERBATIM )
+#else (DOXYGEN_FOUND)
+#  message("Doxygen need to be installed to generate the doxygen documentation")
+#endif (DOXYGEN_FOUND)

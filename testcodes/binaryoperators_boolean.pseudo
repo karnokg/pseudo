@@ -1,0 +1,47 @@
+sorKiir("EXP igaz")
+i <- igaz || igaz
+kiir("GOT ")
+logikaiKiir(i)
+ujsor()
+
+sorKiir("EXP hamis")
+i <- hamis || hamis
+kiir("GOT ")
+logikaiKiir(i)
+ujsor()
+
+sorKiir("EXP igaz")
+i <- igaz || hamis
+kiir("GOT ")
+logikaiKiir(i)
+ujsor()
+
+sorKiir("EXP igaz")
+i <- hamis || igaz
+kiir("GOT ")
+logikaiKiir(i)
+ujsor()
+
+sorKiir("EXP hamis")
+i <- hamis && hamis
+kiir("GOT ")
+logikaiKiir(i)
+ujsor()
+
+sorKiir("EXP hamis")
+i <- hamis && igaz
+kiir("GOT ")
+logikaiKiir(i)
+ujsor()
+
+sorKiir("EXP hamis")
+i <- igaz && hamis
+kiir("GOT ")
+logikaiKiir(i)
+ujsor()
+
+sorKiir("EXP igaz")
+i <- igaz && igaz
+kiir("GOT ")
+logikaiKiir(i)
+ujsor()

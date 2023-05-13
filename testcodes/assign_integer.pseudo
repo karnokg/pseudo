@@ -1,0 +1,21 @@
+Kimenet: nincs
+fuggveny out(exp : egesz, got : egesz)
+	kiir("EXP ")
+	egeszKiir(exp)
+	ujsor()
+	kiir("GOT ")
+	egeszKiir(got)
+	ujsor()
+fuggveny vege
+
+i <- 5
+out(5, i)
+
+i <- -5
+out(-5, i)
+
+i <- 543524354
+out(543524354, i)
+
+i <- 0
+out(0, i)

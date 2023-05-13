@@ -1,0 +1,89 @@
+ha (3 > 5) akkor
+	sorKiir("NOK")
+kulonben
+	sorKiir("OK")
+elagazas vege
+
+ha (10 > 5) akkor
+	sorKiir("OK")
+kulonben
+	sorKiir("NOK")
+elagazas vege
+
+ha (5 > 5) akkor
+	sorKiir("NOK")
+kulonben
+	sorKiir("OK")
+elagazas vege
+
+ha (4 < 5) akkor
+	sorKiir("OK")
+kulonben
+	sorKiir("NOK")
+elagazas vege
+
+ha (5 < 5) akkor
+	sorKiir("NOK")
+kulonben
+	sorKiir("OK")
+elagazas vege
+
+ha (10 < 5) akkor
+	sorKiir("NOK")
+kulonben
+	sorKiir("OK")
+elagazas vege
+
+ha (3 = 5) akkor
+	sorKiir("NOK")
+kulonben
+	sorKiir("OK")
+elagazas vege
+
+ha (6 = 5) akkor
+	sorKiir("NOK")
+kulonben
+	sorKiir("OK")
+elagazas vege
+
+ha (5 = 5) akkor
+	sorKiir("OK")
+kulonben
+	sorKiir("NOK")
+elagazas vege
+
+ha (2 <= 5) akkor
+	sorKiir("OK")
+kulonben
+	sorKiir("NOK")
+elagazas vege
+
+ha (5 <= 5) akkor
+	sorKiir("OK")
+kulonben
+	sorKiir("NOK")
+elagazas vege
+
+ha (6 <= 5) akkor
+	sorKiir("NOK")
+kulonben
+	sorKiir("OK")
+elagazas vege
+
+ha (5 >= 2) akkor
+	sorKiir("OK")
+kulonben
+	sorKiir("NOK")
+elagazas vege
+
+ha (5 >= 5) akkor
+	sorKiir("OK")
+kulonben
+	sorKiir("NOK")
+elagazas vege
+
+ha (6 >= 5) akkor
+	kiir("OK")
+kulonben
+	kiir("NOK")
+elagazas vege

@@ -1,0 +1,39 @@
+Kimenet: nincs
+fuggveny rendezes(x: egesz tomb, n: egesz)
+	ciklus i <- n-tol 2-ig
+		ciklus j <- 1-tol (i - 1)-ig
+			ha x[j] > x[j + 1] akkor
+				temp <- x[j]
+				x[j] <- x[j + 1]
+				x[j + 1] <- temp
+			elagazas vege
+		ciklus vege
+	ciklus vege
+fuggveny vege
+
+Kimenet: nincs
+fuggveny tombKiir(X: egesz tomb, n: egesz)
+#	egeszKiir(n), sorKiir("<- eddig megy!")
+
+	ciklus i <- 1-tol n-ig
+#		egeszKiir(i), sorKiir("<- itt az i")
+#		egeszKiir(X[i]), sorKiir("<- jelenlegi ertek")
+		egeszKiir(X[i])
+		kiir(", ")
+	ciklus vege
+	ujsor()
+fuggveny vege
+
+t <- Letrehoz(egesz)[5]
+t[1] <- 6
+t[2] <- 1
+t[3] <- 4
+t[4] <- 3
+t[5] <- 8
+
+kiir("BEFORE ")
+tombKiir(t, 5)
+
+rendezes(t, 5)
+kiir("AFTER ")
+tombKiir(t, 5)

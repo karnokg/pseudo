@@ -1,0 +1,30 @@
+Kimenet: egesz
+fuggveny RekurzivVisszaszamlalas(x : egesz)
+	ha x = 0 akkor
+		vissza x
+	kulonben
+		vissza RekurzivVisszaszamlalas(x - 1)
+	elagazas vege
+fuggveny vege
+
+Kimenet: egesz
+fuggveny FaktorialisRekurziv(N : egesz)
+	ha N = 0 akkor
+		vissza 1
+	kulonben
+		vissza N * FaktorialisRekurziv(N - 1)
+	elagazas vege
+fuggveny vege
+
+Kimenet: egesz
+fuggveny FibonacciRekurziv(N : egesz)
+	ha N <= 1 akkor
+		vissza 1
+	kulonben
+		vissza FibonacciRekurziv(N - 2) + FibonacciRekurziv(N - 1)
+	elagazas vege
+fuggveny vege
+
+egeszKiir(RekurzivVisszaszamlalas(3)), ujsor()
+egeszKiir(FaktorialisRekurziv(5)), ujsor()
+egeszKiir(FibonacciRekurziv(5)), ujsor()

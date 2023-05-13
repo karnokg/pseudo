@@ -1,0 +1,29 @@
+Kimenet: nincs
+fuggveny out(exp : racionalis, got : racionalis)
+	kiir("EXP ")
+	racionalisKiir(exp)
+	ujsor()
+	kiir("GOT ")
+	racionalisKiir(got)
+	ujsor()
+fuggveny vege
+
+i <- 5.0
+i <- i + 1
+out(6.0, i)
+
+i <- 5.0
+i <- i - 0.5
+out(4.5, i)
+
+i <- 5.2
+i <- i * 2
+out(10.4, i)
+
+i <- 6.0
+i <- i / 2
+out(3.0, i)
+
+i <- 6.5
+i <- i / 2
+out(3.25, i)

@@ -1,0 +1,22 @@
+Kimenet: nincs
+fuggveny tombNullazas(X : egesz tomb, n : egesz)
+	ciklus i <- 1-tol n-ig
+		X[i] <- i
+	ciklus vege
+fuggveny vege
+
+Kimenet: nincs
+fuggveny tombKiir(X: egesz tomb, n: egesz)
+	ciklus i <- 1-tol n-ig
+		egeszKiir(X[i])
+		kiir(" ")
+	ciklus vege
+	ujsor()
+fuggveny vege
+
+x <- Letrehoz(egesz)[3]
+tombNullazas(x, 3)
+
+sorKiir("EXP 1 2 3 ")
+kiir("GOT ")
+tombKiir(x, 3)

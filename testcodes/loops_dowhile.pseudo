@@ -1,0 +1,4 @@
+i <- 0
+ciklus 
+	kiir("OK")
+amig i < -5
