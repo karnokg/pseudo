@@ -73,7 +73,7 @@
 ### Run your code written in Pseudo
 
 The executable dumps to LLVM IR to err stream, which can be directed into a file.
-Once you've got the file, you can compile it with the llc compiler.
+Once you've got the file, you can compile it with the clang.
 
 * To executable: 
     * `./pseudo <filename> 2> program.ll`
