@@ -26,20 +26,40 @@ void yy::parser::error(const location_type& loc, const std::string& msg) {
 */
 int main(int argc, char* argv[])
 {
-    if (argc != 2)
+    if (argc < 2)
     {
-        std::cout << "no input" << std::endl;
+        std::cout << "No file input!" << std::endl;
         return 1;
     }
 
-    std::string file(argv[1]);
+    std::string filename(argv[1]);
+    std::cout << "filename=" << filename << std::endl;
+    bool run = false;
+    bool verbose = false;
 
-    Pseudo::Interpreter driver;
-    int result = driver.parse(file);
+    std::cout << "Pseudo inputs:" << std::endl;
+    for (int i = 1; i < argc; ++i)
+    {
+        std::string currArg(argv[i]);
+        if (currArg == "--run" || currArg == "-r")
+        {
+            run = true;
+        }
+        else if (currArg == "--verbose" || currArg == "-v")
+        {
+            verbose = true;
+        }
 
-    //if (driver.get_ast_root() != nullptr) {
-    //    std::cout << driver.get_ast_root()->statements.size();
-    //}
+        std::cout << "argv[" << i << "] " << currArg << std::endl; 
+    }
 
-    return result;
+    Pseudo::Interpreter driver(filename);
+    bool parsingSucceeded = driver.parse();
+
+    if (parsingSucceeded)
+    {
+        driver.generateCode(verbose, run);
+    }
+
+    return 0;
 }

@@ -5,19 +5,21 @@
 
 #include "interpreter.h"
 
-Pseudo::Interpreter::Interpreter() {}
+namespace Pseudo
+{
 
-Pseudo::Interpreter::~Interpreter() 
+Interpreter::Interpreter(const std::string& filename) : filename(filename) {}
+
+Interpreter::~Interpreter() 
 {
     delete program_block;
-    program_block = nullptr;
 }
 
-int Pseudo::Interpreter::parse(const std::string& filename)
+bool Interpreter::parse()
 {
     if (filename.empty())
     {
-        return 1;
+        return false;
     }
 
     std::ifstream input(filename);
@@ -26,26 +28,46 @@ int Pseudo::Interpreter::parse(const std::string& filename)
         std::cout << std::filesystem::path() << std::endl;
         std::cout << std::filesystem::current_path() << std::endl;
         std::cout << std::filesystem::temp_directory_path() << std::endl;
-        std::cout << "can't open file: " << filename << std::endl;
-        return 1;
+        std::cout << "Can't open file: " << filename << std::endl;
+        return false;
     }
 
     return parse_helper(input);
 }
 
-int Pseudo::Interpreter::parse_helper(std::istream& stream)
+void Interpreter::generateCode(const bool verbose, const bool run)
+{
+    CodeGenContext context(filename, std::cout);
+
+    if (context.preProcessing(*program_block)) 
+    {
+        if (verbose)
+        {
+            context.printCodeGeneration(*program_block, std::cout);
+        }
+
+        if (context.generateCode(*program_block) && run) 
+        {
+            context.runCode();
+        }
+   }
+}
+
+bool Interpreter::parse_helper(std::istream& stream)
 {
     Pseudo::Scanner scanner(&stream);
     Pseudo::Parser parser(scanner, *this);
-    return parser.parse();
+    return parser.parse() == 0;
 }
 
-Pseudo::Block* Pseudo::Interpreter::get_ast_root()
+Pseudo::Block* Interpreter::get_ast_root()
 {
     return program_block;
 }
 
-void Pseudo::Interpreter::set_ast_root(Pseudo::Block* root)
+void Interpreter::set_ast_root(Pseudo::Block* root)
 {
     program_block = root;
+}
+
 }

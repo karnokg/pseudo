@@ -1,0 +1,72 @@
+kiir("1")
+kiir("2")
+kiir("3")
+kiir("4")
+
+
+
+Kimenet: logikai
+fuggveny LogikaiFgv(n : egesz)
+	rac1 <- 5.234
+	asdf3 <- 5
+	aaa <- "stringstring"
+	log <- igaz
+	log <- hamis
+	log <- igaz
+	
+	x <- Letrehoz(egesz)[5]
+
+	ciklus i <- 1-tol 5-ig
+		x[i] <- 5
+		egeszKiir(x[i])
+		ujsor()
+	ciklus vege
+	
+	kiir("compare itt")
+	vissza n < 5
+fuggveny vege
+
+Kimenet: nincs
+fuggveny teszt()
+	asdfasdf <- 9999
+	LogikaiFgv(4)
+fuggveny vege
+
+Kimenet: egesz
+fuggveny main()
+	kiir("hello world")
+	vissza 1
+fuggveny vege
+
+
+kiir("Hello world!")
+
+ha LogikaiFgv(4) akkor
+	sorKiir("OK")
+kulonben
+	sorKiir("NOK")
+elagazas vege
+
+#Kimenet: nincs
+#fuggveny logikaiteszt(n : egesz)
+#	Kimenet: logikai
+#	fuggveny P(x : egesz)
+#		vissza x < 5
+#	fuggveny vege
+#
+#	ha P(n) akkor
+#		sorKiir("OK")
+#	kulonben
+#		sorKiir("NOK")
+#	elagazas vege
+#fuggveny vege
+#
+#
+#logikaiteszt(4)
+#
+#ujsor()
+#logikaiKiir(igaz)
+#ujsor()
+#logikaiKiir(hamis)
+#ujsor()
+#

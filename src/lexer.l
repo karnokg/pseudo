@@ -10,27 +10,69 @@
 #include <stack>
 #include <string>
 #include "scanner.h"
+#include "location.hh"
 
 #undef YY_DECL
-#define YY_DECL int Pseudo::Scanner::yylex(Pseudo::Parser::semantic_type* const lval, Pseudo::Parser::location_type* location)
+#define YY_DECL int Pseudo::Scanner::yylex(Pseudo::Parser::semantic_type* const lval, Pseudo::location* yyloc)
+//#define YY_DECL int Pseudo::Scanner::yylex(Pseudo::Parser::semantic_type* const lval, location_type* location)
+
+#define PSEUDO_LEXER_LOG_ENABLED 0 
 
 using token = Pseudo::Parser::token;
+
+int g_current_line_indent = 0;
+std::stack<size_t> g_indent_levels;
+int g_is_fake_outdent_symbol = 0;
+
+int location_ignore_new_line = 0;
+static void updateLoc(Pseudo::location* yyloc, const char* txt)
+{
+	auto s = std::string(txt);
+    {
+        size_t pos;
+        while ((pos = s.find('\n')) != std::string::npos) {
+            s.replace(pos, 1, "`\\n`");
+        }
+    }
+
+	yyloc->begin.line = yyloc->end.line;
+	yyloc->begin.column = yyloc->end.column;
+    for (int i = 0; txt[i] != '\0'; ++i)
+    {
+        if (txt[i] == '\n')
+        {
+            if (!location_ignore_new_line)
+            {
+                yyloc->end.line++;
+                yyloc->end.column = 0;
+            }
+            else if (PSEUDO_LEXER_LOG_ENABLED)
+            {
+                std::cout << "# ignored new line" << std::endl;
+            }
+        } 
+        else
+        { 
+            yyloc->end.column++; 
+        }
+    }
+
+    if (PSEUDO_LEXER_LOG_ENABLED)
+    {
+        std::cout << "buffer: `" << s << "` | ";
+        std::cout << "begin line " << yyloc->begin.line << " column " << yyloc->begin.column << " | ";
+        std::cout << "end line " << yyloc->end.line << " column " << yyloc->end.column << std::endl;
+    }
+}
 
 //#define yyterminate() return (token::T_ENDOFFILE)
 #define yyterminate() return YY_NULL
 
 #define YY_NO_UNISTD_H
 
-#define YY_USER_ACTION \
-    loc->step(); loc->columns(YYLeng());
-
-#define PSEUDO_LEXER_LOG_ENABLED 1 
+#define YY_USER_ACTION updateLoc(yyloc, YYText());
 
 #define PRINT_TOKEN(STR) debug_token(STR, YYText())
-
-    int g_current_line_indent = 0;
-    std::stack<size_t> g_indent_levels;
-    int g_is_fake_outdent_symbol = 0;
 
 #define YY_USER_INIT { \
     g_indent_levels.push(0); \
@@ -76,6 +118,10 @@ using token = Pseudo::Parser::token;
     BEGIN(indent); 
 }
 
+<indent>#.*[\n] {
+    /* ignored */
+}
+
 <initial>\n {
     indent_caller = normal;
     yyless(0);
@@ -85,8 +131,8 @@ using token = Pseudo::Parser::token;
 }   
 
 <indent>" " {
-
-    std::cerr << "Lexical Analysis: You use space based indentation, which is not supported." << std::endl;
+    std::cerr << "Lexical Analysis: You used space based indentation, which is not supported." << std::endl;
+    std::cerr << "Ln " << yyloc->begin.line << ", Col " << yyloc->begin.column << std::endl;
     exit(1);
 }
 
@@ -94,11 +140,11 @@ using token = Pseudo::Parser::token;
     ++g_current_line_indent;
 }
 
-<indent>[\n]+ { 
+<indent>\n { 
+    location_ignore_new_line = 0;
     g_current_line_indent = 0;
-    loc->lines();
-    PRINT_TOKEN("T_NEWLINE");
-    return token::T_NEWLINE;
+//    PRINT_TOKEN("T_NEWLINE");
+//    return token::T_NEWLINE;
 }
 
 <<EOF>> {
@@ -197,7 +243,12 @@ using token = Pseudo::Parser::token;
     g_current_line_indent = 0;
     indent_caller = YY_START;
     unput('\n'); /* let indent mode handle new lines! */
+    location_ignore_new_line = 1;
     BEGIN(indent); 
+}
+
+#.* {
+    /* ignored */
 }
 
 \r {
@@ -206,6 +257,11 @@ using token = Pseudo::Parser::token;
 program {
     PRINT_TOKEN("T_PROGRAM");
     return token::T_PROGRAM;
+}
+
+Kimenet {
+    PRINT_TOKEN("T_OUTPUT");
+    return token::T_OUTPUT;
 }
 
 mod {
@@ -298,17 +354,12 @@ tomb {
     return token::T_ARRAY;
 }
 
-kiir {
-    PRINT_TOKEN("T_PRINT");
-    return token::T_PRINT;
-}
-
 szoveg {
     PRINT_TOKEN("T_STRING");
     return token::T_STRING;
 }
 
-void {
+nincs {
     PRINT_TOKEN("T_VOID");
     return token::T_VOID;
 }
@@ -364,8 +415,8 @@ TablaLetrehoz {
 }
 
 "+" {
-    PRINT_TOKEN("T_ADD");
-    return token::T_ADD;
+    PRINT_TOKEN("T_PLUS");
+    return token::T_PLUS;
 }
 
 "-" {
@@ -441,6 +492,7 @@ TablaLetrehoz {
 \"([^\\\"]|\\.)*\" {
 
     PRINT_TOKEN("T_STRING_VAL");
+    yylval->string = new std::string(YYText(), YYLeng());
     return token::T_STRING_VAL;
 }
 
@@ -454,20 +506,20 @@ TablaLetrehoz {
     return token::T_IDENTIFIER;
 }
 
-[0-9]+ {
+[-+]?[0-9]+ {
     PRINT_TOKEN("T_INTEGER_VAL");
     yylval->integer = std::stoll(std::string(YYText(), YYLeng()));
     return token::T_INTEGER_VAL;
 }
 
-[0-9]+\.[0-9]* {
+[-+]?[0-9]+\.[0-9]* {
     PRINT_TOKEN("T_RATIONAL_VAL");
     yylval->rational = std::stod(std::string(YYText(), YYLeng()));
     return token::T_RATIONAL_VAL;
 }
 
 . {
-	std::cout << loc->begin.line << loc->begin.column << std::endl;
-    std::cout << "unexpected character '" << YYText() << "' at '" << lineno() << ":" << col << "'" << std::endl;
+    std::cerr << "Unexpected '" << YYText() << "'" << std::endl;
+    std::cerr << "Ln " << yyloc->begin.line << ", Col " << yyloc->begin.column << std::endl;
     exit(1);
 }

@@ -16,17 +16,21 @@ namespace Pseudo {
 class Interpreter 
 {
 public:
-    Interpreter();
+    Interpreter(const std::string& filename);
     virtual ~Interpreter();
 
-    int parse(const std::string& file);
-    int parse(std::istream& iss);
+    bool parse();
+
+    void generateCode(const bool verbose, const bool run);
 
     void set_ast_root(Block* root);
     Block* get_ast_root();
 
 private:
-    int parse_helper(std::istream& stream);
+    bool parse(std::istream& iss);
+    std::string filename;
+
+    bool parse_helper(std::istream& stream);
     Block* program_block = nullptr;
 };
 

@@ -23,7 +23,7 @@
 - [x] Lexer
 	- [x] Tab based indentation
 	- [x] Tokens
-	- [ ] ~~Add ENDOFFILE token~~
+    - [x] ~~Add ENDOFFILE token~~
 - [x] Parser (Grammar) 
 	- [x] Variable declaration statement
 	- [x] Function declaration statement
@@ -37,17 +37,14 @@
 	- [x] For statements
 	- [x] Return statements
 	- [x] Vectors 
-	- [x] Matrices
 	- [x] Function calls
 
-- [ ] Semantics 
+- [x] Semantics 
 	- [x] Tab based indentation only, error on space!
-- [ ] Code generation
-- [ ] Debug informations
+- [x] Code generation
+- [x] Debug informations
 
 - [ ] Tests
- 
-- [ ] GUI to run + debug
 
 ## Technical stuff
 
@@ -55,7 +52,7 @@
 
 * flex 2.6.4
 * bison 3.8.2
-* LLVM version
+* LLVM version 14.0.6
 * (Doxygen 1.9.1 and graphviz 2.43.0 for pretty diagrams)
 
 ### Building the Source code
@@ -73,12 +70,24 @@
 
 3. Done!
 
-### Compiling your code written in Pseudo
+### Run your code written in Pseudo
 
-1. In terminal: 
-	* `./pseudo <filename>`
+The executable dumps to LLVM IR to err stream, which can be directed into a file.
+Once you've got the file, you can compile it with the llc compiler.
 
-2. Run compiled code:
-	* `TODO`
+* To executable: 
+    * `./pseudo <filename> 2> program.ll`
+	* `llc program.ll`
+	* `clang program.ll -g -O0 -o program.out externfunctions.cpp`
+	* `./program.out`
+
+* Run directly:
+    * `./pseudo <filename> --run`
+
+* To debug:
+	* `lldb-15 program.out`
+	* `gdb program.out`
+	* ...
+
 
 

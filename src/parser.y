@@ -12,21 +12,46 @@
     };
 
     #include "node.h"
+    #include "nodes/binaryoperator.h"
+    #include "nodes/unaryoperator.h"
+    #include "nodes/variabledeclaration.h"
+    #include "nodes/compareoperator.h"
+    #include "nodes/functiondeclaration.h"
+    #include "nodes/assignment.h"
+    #include "nodes/string.h"
+    #include "nodes/vector.h"
+    #include "nodes/forloop.h"
 }
 
 %parse-param { Scanner& scanner  }
 %parse-param { Interpreter& driver  }
+
+%locations
 
 %code {
     #include <iostream>
     #include <cstdlib>
     #include <fstream>
 
+    #include "location.hh"
     #include "interpreter.h"
     #include "node.h"
+    #include "nodes/binaryoperator.h"
+    #include "nodes/unaryoperator.h"
+    #include "nodes/variabledeclaration.h"
 
     #undef yylex
     #define yylex scanner.yylex
+
+    #define PSEUDO_PRINT_GRAMMAR 0
+
+    void printRule(const std::string& rule, bool forcePrint = false)
+    {
+        if (PSEUDO_PRINT_GRAMMAR || forcePrint)
+        {
+            std::cout << rule << std::endl;
+        }
+    }
 }
 
 /*define api.value.type variant*/
@@ -38,9 +63,12 @@
     Pseudo::Block* block;
     Pseudo::Statement* stmt;
     Pseudo::Expression* expr;
+    Pseudo::VariableDeclaration* vardecl;
     Pseudo::ExpressionList* exprlist;
+    Pseudo::VariableList* varlist;
     Pseudo::VectorAccess* vecaccess;
     Pseudo::Identifier* ident;
+    Pseudo::String* pstring;
     std::string* string;
     long long integer;
     double rational;
@@ -65,12 +93,12 @@
 %token T_INTEGER
 %token T_RATIONAL
 %token T_ARRAY 
-%token T_PRINT
 %token T_STRING
 %token T_NEWLINE
+%token T_OUTPUT
 %token <token> T_ASSIGN T_SWAP
 %token <token> T_EQ T_NOTEQ T_LESS T_LESSEQ T_GREATER T_GREATEREQ
-%token <token> T_ADD T_MINUS T_DIV T_MUL T_MODULUS
+%token <token> T_PLUS T_MINUS T_DIV T_MUL T_MODULUS
 %token <token> T_AND T_OR
 %token <token> T_LPAREN T_RPAREN T_LSBRACKET T_RSBRACKET T_COMMA T_DOT T_NOT T_COLON T_QUESTIONMARK
 %token <string> T_IDENTIFIER T_STRING_VAL T_TRUE T_FALSE
@@ -82,489 +110,279 @@
 %token T_CREATEMATRIX
 
 %type <block> program stmts block
-%type <stmt> stmt var_decl assign_stmt conditional iterate_stmt
+%type <stmt> stmt assign_stmt conditional loop_stmt return func_decl
+%type <vardecl> var_decl
+
+%type <varlist> func_decl_args
+%type <exprlist> call_args
+%type <token> comparison
+
+%type <pstring> string
 
 // exprs
-%type <expr> expr numeric logical func_call matrix vector
+%type <expr> expr numeric logical func_call matrix vector unaryop_expr boolean_expr binop_expr
 %type <vecaccess> vector_access matrix_access
 %type <ident> type_specifier ident
 
-%type <exprlist> call_args
-
-%left T_OR
-%left T_AND
-%left T_EQ T_NOTEQ
-%left T_LESS T_GREATER T_LESSEQ T_GREATEREQ
-%left T_ADD T_MINUS
+%left T_PLUS T_MINUS
 %left T_MUL T_DIV T_MODULUS
-%precedence T_NOT
+%left T_AND T_NOT
+
+//%left T_OR
+//%left T_AND
+////%left T_EQ T_NOTEQ
+////%left T_LESS T_GREATER T_LESSEQ T_GREATEREQ
+//%left T_PLUS T_MINUS
+//%left T_MUL T_DIV T_MODULUS
+//%precedence T_NOT
 
 %start program
 
-%locations
-
 %%
 
-program:
-    %empty
-    {
-        driver.set_ast_root(new Pseudo::Block());
-    }
-|
-    stmts
-    {
-        driver.set_ast_root($1);
-        std::cout << "stmts <<EOF>>" << std::endl;
-    }
-;
+program : %empty { driver.set_ast_root(new Pseudo::Block(@$)); printRule("program -> epsilon"); }
+        | stmts { driver.set_ast_root($1); printRule("program -> stmts"); } 
+        ;
 
-stmts:
-    stmt
-    {
-        $$ = new Pseudo::Block();
-        $$->statements.push_back($<stmt>1);
-        std::cout << "stmts -> stmt" << std::endl;
-    }
-|   
-    stmts stmt
-    {
-        $1->statements.push_back($<stmt>2);
-        std::cout << "stmts -> stmts stmt" << std::endl;
-    }
-;
-
-ident : T_IDENTIFIER { $$ = new Pseudo::Identifier(*$1); }
+stmts : stmt { $$ = new Pseudo::Block(@$); $$->statements.push_back($<stmt>1); printRule("stmts -> stmt"); }
+      | stmts stmt { $1->statements.push_back($<stmt>2); printRule("stmts -> stmts stmt"); }
       ;
 
-stmt:
-    var_decl close
-    {
-        std::cout << "stmts -> var_decl close" << std::endl;
-    }
-|
-    func_decl
-    {
-        std::cout << "stmts -> func_decl close" << std::endl;
-    }
-|
-    assign_stmt close
-    {
-        std::cout << "stmts -> assign_stmt close" << std::endl;
-    }
-|
-    expr close
-    {
-        std::cout << "stmts -> expr close" << std::endl;
-        $$ = new Pseudo::ExpressionStatement($1);
-    }
-|
-    conditional close
-    {
-        std::cout << "stmts -> conditional close" << std::endl;
-    }
-|
-    iterate_stmt close
-    {
-        std::cout << "stmts -> iterate_stmt close" << std::endl;
-    }
-|
-    return close
-    {
-        std::cout << "stmts -> return close" << std::endl;
-    }
-;
+ident : T_IDENTIFIER { $$ = new Pseudo::Identifier(*$1, @$); printRule("ident"); }
+      ;
 
-func_decl:
-    T_FUNCTION ident T_LPAREN func_decl_args T_RPAREN close block T_FUNCTION T_END
-    {
-        std::cout << "func_decl -> T_FUNCTION ident T_LPAREN func_decl_args T_RPAREN block T_FUNCTION T_END" << std::endl;
-    }
-;
+stmt : var_decl close { printRule("stmts -> var_decl close"); }
+     | func_decl close { printRule("stmts -> func_decl close"); }
+     | assign_stmt close { printRule("stmts -> assign_stmt close"); }
+     | expr close { printRule("stmts -> expr close"); $$ = new Pseudo::ExpressionStatement($1, @$); }
+     | conditional close { printRule("stmts -> conditional close"); }
+     | loop_stmt close { printRule("stmts -> loop_stmt close"); }
+     | return close { printRule("stmts -> return close"); } 
+     ;
 
-func_decl_args :
-    %empty 
-    { 
-        std::cout << "function_decl_args -> empty" << std::endl;
-    }
-|
-    var_decl
-    {
-        std::cout << "func_decl_args -> var_decl" << std::endl;
-    }
-|
-    func_decl_args T_COMMA var_decl
-    {
-        std::cout << "funcition_decl_args -> func_decl_args T_COMMA var_decl" << std::endl;
-    }
-;
+func_decl : T_OUTPUT T_COLON type_specifier /*T_NEWLINE*/ T_FUNCTION ident T_LPAREN func_decl_args T_RPAREN close block T_FUNCTION T_END
+            {
+                //$$ = new FunctionDeclaration($3, $6, $8, $11);
+                $$ = new FunctionDeclaration($3, $5, $7, $10, @$);
+                printRule("func_decl -> T_OUTPUT T_COLON type_specifier T_FUNCTION ident T_LPAREN func_decl_args T_RPAREN block T_FUNCTION T_END");
+            }
+          ;
+
+func_decl_args : %empty { $$ = new Pseudo::VariableList(); printRule("function_decl_args -> epsilon"); }
+               | var_decl { $$ = new Pseudo::VariableList(); $$->push_back($1); printRule("func_decl_args -> var_decl"); }
+               | func_decl_args T_COMMA var_decl { $1->push_back($3); printRule("funcition_decl_args -> func_decl_args T_COMMA var_decl"); }
+               ;
+
+//func_var_type_specifier : type_specifier { $$ = $1; }
+//                        | T_ARRAY type_specifier { $$ = $1; }
+//                        ;
 
 var_decl :
-    ident T_COLON ident T_ASSIGN expr  //type
+    ident T_COLON type_specifier T_ASSIGN expr 
     {
-        $$ = new Pseudo::VariableDeclarationStatement($1, $3, $<expr>4);
-        std::cout << "var_decl -> ident T_COLON ident T_ASSIGN expression" << std::endl;
+        $$ = new Pseudo::VariableDeclaration($3, $1, $5, @$);
+        printRule("var_decl -> ident T_COLON type_specifier T_ASSIGN expression");
     }
-|   ident T_COLON ident  //type
+|   ident T_COLON type_specifier 
     {
-        $$ = new Pseudo::VariableDeclarationStatement($1, $3);
-        std::cout << "var_decl -> ident T_COLON ident"  << std::endl;
+        $$ = new Pseudo::VariableDeclaration($3, $1, @$);
+        printRule("var_decl -> ident T_COLON type_specifier");
     }
 ;
 	
 assign_stmt:
     ident T_ASSIGN expr
     {
-        $$ = new Pseudo::AssignmentStatement($<ident>1, $<expr>3);
-        std::cout << "assign_statement -> ident T_ASSIGN expr" << std::endl;
+        $$ = new Pseudo::Assignment($<ident>1, $<expr>3, @$);
+        printRule("assign_statement -> ident T_ASSIGN expr");
     }
 |   
     vector_access T_ASSIGN expr
     {
-        $$ = new Pseudo::ModifyVector($1, $3);
+        $$ = new Pseudo::ModifyVector($1, $3, @$);
+        printRule("vector_access -> vector_access T_ASSIGN expr");
     }
 |
     matrix_access T_ASSIGN expr
     {
-        $$ = new Pseudo::ModifyVector($1, $3);
+        $$ = new Pseudo::ModifyVector($1, $3, @$);
+        printRule("vector_access -> matrix_access T_ASSIGN expr");
     }
 ;
 
 conditional:
     T_IF expr T_THEN close block T_IF_END T_END
     {
-        $$ = new ConditionalStatement($2, $5);
-        std::cout << "conditional -> T_IF expr T_THEN block T_IF_END T_END" << std::endl;
+        $$ = new Conditional($2, $5, @$);
+        printRule("conditional -> T_IF expr T_THEN block T_IF_END T_END");
     }
 |
     T_IF expr T_THEN close block T_ELSE close block T_IF_END T_END
     {
-        $$ = new ConditionalStatement($2, $5, $8);
-        std::cout << "conditional -> T_IF expr T_THEN block T_ELSE block T_IF_END T_END" << std::endl;
+        $$ = new Conditional($2, $5, $8, @$);
+        printRule("conditional -> T_IF expr T_THEN block T_ELSE block T_IF_END T_END");
     }
 ;
 
-iterate_stmt:
+loop_stmt:
     T_ITERATE T_WHILE expr close block T_ITERATE T_END
     {
-        std::cout << "iterate_stmt -> T_ITERATE T_WHILE expr close block T_ITERATE T_END" << std::endl; 
+        $$ = new WhileLoop($3, $5, @$);
+        printRule("loop_stmt -> T_ITERATE T_WHILE expr close block T_ITERATE T_END");
     }
 |
     T_ITERATE close block T_WHILE expr
     {
-        std::cout << "iterate_stmt -> T_ITERATE close block T_WHILE expr T_ITERATE T_END" << std::endl;
+        $$ = new DoWhileLoop($5, $3, @$);
+        printRule("loop_stmt -> T_ITERATE close block T_WHILE expr T_ITERATE T_END");
     }
 |
     T_ITERATE ident T_ASSIGN expr T_MINUS T_FROM expr T_MINUS T_TO close block T_ITERATE T_END 
     {
-        std::cout << "iterate_stmt -> T_ITERATE ident T_ASSIGN expr T_FROM expr T_TO close block T_ITERATE T_END" << std::endl;
+        $$ = new ForLoop($2, $4, $7, $11, @$);
+        printRule("loop_stmt -> T_ITERATE ident T_ASSIGN expr T_FROM expr T_TO close block T_ITERATE T_END");
     }
 ;
 
 return:
     T_RETURN expr
     {
-        std::cout << "return -> T_RETURN expr" << std::endl;
+        $$ = new Return($2, @$);
+        printRule("return -> T_RETURN expr");
     }
 |
     T_RETURN
     {
-        std::cout << "return -> T_RETURN" << std::endl;
+        $$ = new Return(@$);
+        printRule("return -> T_RETURN");
     }
 ;
 
 
-block:
-    T_INDENT stmts T_OUTDENT
-    {
-        $$ = $2;
-    }
-|   T_INDENT T_OUTDENT
-    {
-        $$ = new Pseudo::Block();
-    }
+block : T_INDENT stmts T_OUTDENT { $$ = $2; } 
+      |   T_INDENT T_OUTDENT { $$ = new Pseudo::Block(@$); }
+      ;
 
-close:
-    T_COMMA
-    {
-        std::cout << "close -> T_COMMA" << std::endl;
-    }
-|
-    T_NEWLINE
-    {
-        std::cout << "close -> T_NEWLINE" << std::endl;
-    }
-|
-    close T_NEWLINE
-    {
-        std::cout << "close -> close T_NEWLINE" << std::endl;
-    }
-;
+close : T_COMMA { printRule("close -> T_COMMA"); }
+      | %empty { printRule("close -> epsilon"); }
+      ;
 
-expr:
-    func_call 
-    {
-        std::cout << "expr -> func_call" << std::endl;
-    }
-|   
-    ident
-    {
-        std::cout << "expr -> ident" << std::endl;
-    }
-|   
-    numeric 
-    {
-        std::cout << "expr -> numeric" << std::endl;
-    }
-|   
-    logical
-    {
-        std::cout << "expr -> logical" << std::endl;
-    }
-|   
-    vector
-    {
-        std::cout << "expr -> vector" << std::endl;
-    }
-|
-    matrix
-    {
-        std::cout << "expr -> matrix" << std::endl;
-    }
-|
-    vector_access
-    {
-        std::cout << "expr -> vector_access" << std::endl;
-    }
-|
-    matrix_access
-    {
-        std::cout << "expr -> matrix_access" << std::endl;
-    }
-|
-    expr T_ADD expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_ADD expr" << std::endl;
-    }
-|
-    expr T_MINUS expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_MINUS expr" << std::endl;
-    }
-|
-    expr T_MUL expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_MUL expr" << std::endl;
-    }
-|
-    expr T_DIV expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_DIV expr" << std::endl;
-    }
-|
-    expr T_MODULUS expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_MODULUS expr" << std::endl;
-    }
-|
-    expr T_LESS expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_LESS expr" << std::endl;
-    }
-|
-    expr T_GREATER expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_GREATER expr" << std::endl;
-    }
-|
-    expr T_LESSEQ expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_LESSEQ expr" << std::endl;
-    }
-|
-    expr T_GREATEREQ expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_GREATEREQ expr" << std::endl;
-    }
-|
-    expr T_AND expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_AND expr" << std::endl;
-    }
-|
-    expr T_OR expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_OR expr" << std::endl;
-    }
-|
-    expr T_EQ expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_EQ expr" << std::endl;
-    }
-|
-    expr T_NOTEQ expr
-    {
-        $$ = new BinaryOperator($1, $2, $3);
-        std::cout << "expr -> expr T_NOTEQ expr" << std::endl;
-    }
-|
-    T_NOT expr
-    {
-        $$ = new UnaryOperator($1, $2);
-        std::cout << "expr -> T_NOT expr" << std::endl;
-    }
-|   T_LPAREN expr T_RPAREN
-    {
-        $$ = $2;
-    }
-;
+//close : T_COMMA { printRule("close -> T_COMMA"); }
+//      | T_NEWLINE { printRule("close -> T_NEWLINE"); }
+//      | close T_NEWLINE { printRule("close -> close T_NEWLINE"); }
+//      ;
 
-func_call:
-    ident T_LPAREN call_args T_RPAREN
-    {
-        $$ = new Pseudo::FunctionCall($1, $3);
-        std::cout << "func_call -> ident T_LPAREN call_args T_RPAREN" << std::endl;
-    }
-;
+expr : func_call { printRule("expr -> func_call"); }
+     | ident { printRule("expr -> ident"); }
+     | numeric { printRule("expr -> numeric"); }
+     | logical { printRule("expr -> logical"); }
+     | vector { printRule("expr -> vector"); }
+     | matrix { printRule("expr -> matrix"); }
+     | vector_access { printRule("expr -> vector_access"); }
+     | matrix_access { printRule("expr -> matrix_access"); }
+     | binop_expr { printRule("expr -> binop_expr"); }
+     | boolean_expr { printRule("expr -> boolean_expr"); }
+     | unaryop_expr { printRule("expr -> unaryop_expr"); }
+     | string { printRule("expr -> string"); }
+     | T_LPAREN expr T_RPAREN { $$ = $2; }
+     ;
 
-call_args:
-    %empty
-    { 
-        $$ = new Pseudo::ExpressionList();
-        std::cout << "call_args -> epsilon" << std::endl;
-    }
-    | expr 
-    {
-        $$ = new Pseudo::ExpressionList();
-        $$->push_back($1);
-        std::cout << "call_args -> expr" << std::endl;
-    }
-    | call_args T_COMMA expr 
-    {
-        $$->push_back($3);
-        std::cout << "call_args -> call_args T_COMMA expr" << std::endl;
-    } 
-;
+binop_expr : expr T_AND expr { $$ = new BinaryOperator($1, token::T_AND, $3, @$); printRule("expr -> expr T_AND expr"); }
+           | expr T_OR expr { $$ = new BinaryOperator($1, token::T_OR, $3, @$); printRule("expr -> expr T_OR expr"); }
+           | expr T_PLUS expr { $$ = new BinaryOperator($1, token::T_PLUS, $3, @$); printRule("expr -> expr T_PLUS expr"); }
+           | expr T_MINUS expr { $$ = new BinaryOperator($1, token::T_MINUS, $3, @$); printRule("expr -> expr T_MINUS expr"); }
+           | expr T_MUL expr { $$ = new BinaryOperator($1, token::T_MUL, $3, @$); printRule("expr -> expr T_MUL expr"); }
+           | expr T_DIV expr { $$ = new BinaryOperator($1, token::T_DIV, $3, @$); printRule("expr -> expr T_DIV expr"); }
+           | expr T_MODULUS expr { $$ = new BinaryOperator($1, token::T_MODULUS, $3, @$); printRule("expr -> expr T_MODULUS expr"); }
+           ;
 
-numeric:
-    T_INTEGER_VAL
-    {
-        $$ = new Pseudo::Integer($1);
-        std::cout << "numeric -> T_INTEGER_VAL" << std::endl;
-    }
-|   T_RATIONAL_VAL
-    {
-        $$ = new Pseudo::Rational($1);
-        std::cout << "numeric -> T_RATIONAL_VAL" << std::endl;
-    }
-;
+comparison : T_LESS { $$ = token::T_LESS; } 
+           | T_GREATER { $$ = token::T_GREATER; printRule("comparison -> T_GREATER"); } 
+           | T_LESSEQ  { $$ = token::T_LESSEQ; }
+           | T_GREATEREQ { $$ = token::T_GREATEREQ; }
+           | T_EQ { $$ = token::T_EQ; } 
+           | T_NOTEQ { $$ = token::T_NOTEQ; }
+           ;
 
-logical:
-    T_TRUE
-    {
-        $$ = new Pseudo::Boolean(true);
-        std::cout << "logical -> T_TRUE" << std::endl;
-    }
-|   T_FALSE
-    {
-        $$ = new Pseudo::Boolean(false);
-        std::cout << "logical -> T_FALSE" << std::endl;
-    }
-;
+boolean_expr : expr comparison expr { $$ = new CompareOperator($1, $2, $3, @$); printRule("boolean_expr -> expr comparison expr"); }
+             ;
+
+unaryop_expr : T_NOT expr { $$ = new UnaryOperator($1, $2, @$); printRule("unaryop_expr -> T_NOT expr"); }
+             ;
+
+func_call : ident T_LPAREN call_args T_RPAREN { $$ = new Pseudo::FunctionCall($1, $3, @$); printRule("func_call -> ident T_LPAREN call_args T_RPAREN"); }
+          ;
+
+call_args : %empty { $$ = new Pseudo::ExpressionList(); printRule("call_args -> epsilon"); }
+          | expr { $$ = new Pseudo::ExpressionList(); $$->push_back($1); printRule("call_args -> expr"); }
+          | call_args T_COMMA expr { $$->push_back($3); printRule("call_args -> call_args T_COMMA expr"); } 
+          ;
+
+numeric : T_INTEGER_VAL { $$ = new Pseudo::Integer($1, @$); printRule("numeric -> T_INTEGER_VAL"); }
+        |   T_RATIONAL_VAL { $$ = new Pseudo::Rational($1, @$); printRule("numeric -> T_RATIONAL_VAL"); }
+        ;
+
+string : T_STRING_VAL { $$ = new Pseudo::String(*$1, @$); printRule("string -> T_STRING_VAL"); }
+       ;
+
+logical : T_TRUE { $$ = new Pseudo::Boolean(true, @$); printRule("logical -> T_TRUE"); }
+        |   T_FALSE { $$ = new Pseudo::Boolean(false, @$); printRule("logical -> T_FALSE"); }
+        ;
 
 vector:
     // 'Letrehoz(egesz)[6]' 
-    T_CREATEVECTOR T_LPAREN type_specifier T_RPAREN T_LSBRACKET T_INTEGER_VAL T_RSBRACKET
+    T_CREATEVECTOR T_LPAREN type_specifier T_RPAREN T_LSBRACKET expr T_RSBRACKET
     {
         // make sure type_spec is not void
-        auto vec = new Pseudo::ExpressionList();
-        $$ = new Pseudo::Vector($3, new Pseudo::ExpressionList(), $6);
-        std::cout << "vector -> T_CREATEVECTOR T_LPAREN type_specifier T_RPAREN T_LSBRACKET expr T_RSBACKET" << std::endl;
+        $$ = new Pseudo::Vector($3, $6, @$);
+        printRule("vector -> T_CREATEVECTOR T_LPAREN type_specifier T_RPAREN T_LSBRACKET expr T_RSBACKET");
     }
 ;
 
 vector_access:
     ident T_LSBRACKET expr T_RSBRACKET
     {
-        $$ = new VectorAccess($1, $3);
-        std::cout << "vector_access -> ident T_LSBRACKET expr T_RSBRACKET" << std::endl;
+        $$ = new VectorAccess($1, $3, @$);
+        printRule("vector_access -> ident T_LSBRACKET expr T_RSBRACKET");
     }
 ;
 
 matrix:
     // 'TablaLetrehoz(egesz)[6, 5]'
-    T_CREATEMATRIX T_LPAREN type_specifier T_RPAREN T_LSBRACKET T_INTEGER_VAL T_COMMA T_INTEGER_VAL T_RSBRACKET
+    T_CREATEMATRIX T_LPAREN type_specifier T_RPAREN T_LSBRACKET expr T_COMMA expr T_RSBRACKET
     {
-        auto exprs = new Pseudo::ExpressionList();
-        for (int i = 0; i < $6; ++i)
-        {
-            exprs->push_back(new Pseudo::Vector($3, new Pseudo::ExpressionList(), $8));
-        }
-
-        $$ = new Pseudo::Vector($3, exprs, $6);
-
-        // make sure exprs only int!
-        std::cout << "matrix -> T_CREATEMATRIX T_LPAREN type_specifier T_RPAREN T_LSBRACKET expr T_COMMA expr T_RSBACKET" << std::endl;
-        //std::cout << "type:" << $3 << "size: " << $6 << std::endl;
-        std::cout << "type:" << "size: " << $6 << std::endl;
+        auto indexExprs = new Pseudo::ExpressionList();
+        indexExprs->push_back($6);
+        indexExprs->push_back($8);
+        $$ = new Pseudo::Vector($3, indexExprs, $6, @$);
+        printRule("matrix -> T_CREATEMATRIX T_LPAREN type_specifier T_RPAREN T_LSBRACKET expr T_COMMA expr T_RSBACKET");
     }
 ;
 
 matrix_access:
     ident T_LSBRACKET expr T_COMMA expr T_RSBRACKET
     {
-        auto exprs = new ExpressionList();
-        exprs->push_back($3);
-        exprs->push_back($5);
-        $$ = new Pseudo::VectorAccess($1, exprs);
-        std::cout << "matrix_access -> ident T_LSBRACKET expr T_COMMA expr T_RSBRACKET" << std::endl;
+        auto indexExprs = new ExpressionList();
+        indexExprs->push_back($3);
+        indexExprs->push_back($5);
+        $$ = new Pseudo::VectorAccess($1, indexExprs, @$);
+        printRule("matrix_access -> ident T_LSBRACKET expr T_COMMA expr T_RSBRACKET");
     }
 ;
 
-type_specifier:
-    T_BOOLEAN
-    {
-        $$ = new Pseudo::Identifier("boolean");
-        std::cout << "type_specifier -> T_BOOLEAN" << std::endl;
-    }
-|   T_INTEGER
-    {
-        $$ = new Pseudo::Identifier("integer");
-        std::cout << "type_specifier -> T_INTEGER" << std::endl;
-    }
-|   T_RATIONAL
-    {
-        $$ = new Pseudo::Identifier("rational");
-        std::cout << "type_specifier -> T_RATIONAL" << std::endl;
-    }
-|   T_STRING
-    {
-        $$ = new Pseudo::Identifier("string");
-        std::cout << "type_specifier -> T_STRING" << std::endl;
-    }
-|   T_VOID
-    {
-        $$ = new Pseudo::Identifier("void");
-        std::cout << "type_specifier -> T_VOID" << std::endl;
-    }
-;
+type_specifier : T_INTEGER T_ARRAY { $$ = new Pseudo::Identifier("vec_integer", @$); printRule("type_specifier -> T_INTEGER T_ARRAY"); }
+               | T_BOOLEAN T_ARRAY { $$ = new Pseudo::Identifier("vec_boolean", @$); printRule("type_specifier -> T_BOOLEAN T_ARRAY"); }
+               | T_RATIONAL T_ARRAY { $$ = new Pseudo::Identifier("vec_rational", @$); printRule("type_specifier -> T_RATIONAL T_ARRAY"); }
+               | T_BOOLEAN { $$ = new Pseudo::Identifier("boolean", @$); printRule("type_specifier -> T_BOOLEAN"); }
+               | T_INTEGER { $$ = new Pseudo::Identifier("integer", @$); printRule("type_specifier -> T_INTEGER"); }
+               | T_RATIONAL { $$ = new Pseudo::Identifier("rational", @$); printRule("type_specifier -> T_RATIONAL"); }
+               | T_VOID { $$ = new Pseudo::Identifier("void", @$); printRule("type_specifier -> T_VOID"); }
+               ;
 
 %%
 
-void Pseudo::Parser::error(const location_type& loc, const std::string& err_message)
+void Pseudo::Parser::error(const location& loc, const std::string& err_message)
 {
-	std::cout << loc.begin.line << loc.begin.column << std::endl;
-	std::cout << loc.end.line << loc.end.column << std::endl;
-    std::cerr << "Error: " << err_message << " at " << loc << std::endl;
+    std::cerr << err_message << std::endl;
+    std::cerr << "Ln " << loc.begin.line << ", Col " << loc.begin.column << std::endl;
 }

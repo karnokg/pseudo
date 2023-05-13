@@ -1,0 +1,53 @@
+z <- x[2]
+
+ha z > -4 akkor
+	kiir("OK")
+kulonben
+	kiir("NOK")
+elagazas vege
+
+egeszKiir(z)
+
+x[i] = 9
+x[i] <- 9
+x[1] = 8
+x[1] <- 8
+egeszKiir(x[1])
+
+Kimenet: nincs
+fuggveny TombTeszt()
+	n <- 10
+	x <- Letrehoz(egesz)[n]
+
+	i <- 1
+	ciklus amig i < 10
+		egeszKiir(x[i])
+		i <- i + 1
+	ciklus vege
+fuggveny vege
+
+TombTeszt()
+# a <- 9
+# ha a = 5 akkor
+# 	a <- 4
+# kulonben
+# 	a <- 9
+# 	a <- -5
+# elagazas vege
+# 
+# Kimenet: egesz
+# fuggveny LNKO(m: egesz, n: egesz)
+# 	counter <- 0
+# 	r <- m mod n
+# 	ciklus amig r =/= 0
+# 		m <- n
+# 		n <- r
+# 		r <- m mod n
+# 		
+# 		egeszKiir(counter)
+# 		counter <- counter + 1
+# 	ciklus vege
+# 	vissza n
+# fuggveny vege
+# 
+# egeszKiir(LNKO(30, 7))

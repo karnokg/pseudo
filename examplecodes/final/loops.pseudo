@@ -1,0 +1,62 @@
+Kimenet: nincs
+fuggveny tombNullazas(X : egesz tomb, n : egesz)
+	ciklus i <- 1-tol n-ig
+		X[i] <- 0
+	ciklus vege
+fuggveny vege
+
+Kimenet: nincs
+fuggveny tombKiir(X: egesz tomb, n: egesz)
+	ciklus i <- 1-tol n-ig
+		egeszKiir(X[i])
+		kiir(", ")
+	ciklus vege
+	ujsor()
+fuggveny vege
+
+meret <- 10
+x <- Letrehoz(egesz)[meret]
+
+kiir("TOMB")
+tombKiir(x, meret)
+
+tombNullazas(x, meret)
+x[4] <- 5
+sorKiir("TOMB")
+tombKiir(x, meret)
+
+
+Kimenet: nincs
+fuggveny tombBeallit(X: egesz tomb, a: egesz, b: egesz, ertek: egesz)
+	ciklus i <- a-tol b-ig
+		X[i] <- ertek
+	ciklus vege
+fuggveny vege
+
+tombBeallit(x, 1, meret, 1)
+
+kiir("TOMB beallitas utan")
+tombKiir(x, meret)
+
+Kimenet: egesz
+fuggveny sorozatSzamitas(X: egesz tomb, n : egesz)
+	ertek <- 0
+	ciklus i <- 1-tol n-ig
+		ertek <- ertek + X[i]
+	ciklus vege
+	vissza ertek
+fuggveny vege
+
+egeszKiir(sorozatSzamitas(x, meret))
+
+Kimenet: egesz
+fuggveny sorozatSzamitasRekurziv(X: egesz tomb, jobb: egesz)
+	ha jobb = 0 akkor
+		vissza 0
+	kulonben
+		vissza sorozatSzamitasRekurziv(X, jobb - 1) + X[jobb]
+	elagazas vege
+fuggveny vege
+
+egeszKiir(sorozatSzamitasRekurziv(x, meret))
+
