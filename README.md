@@ -7,10 +7,10 @@
 ### Types
 - [x] Integer
 - [x] Rational
-- [x] ~~String~~ 
+- [x] String
 - [x] Logical
-- [x] Array
-- [ ] ~~Pointer~~
+- [x] Variable length arrays
+- [x] ~~Pointer~~
 
 ### Syntax
 
@@ -44,7 +44,7 @@
 - [x] Code generation
 - [x] Debug informations
 
-- [ ] Tests
+- [x] Tests
 
 ## Technical stuff
 
@@ -73,7 +73,7 @@
 ### Run your code written in Pseudo
 
 The executable dumps to LLVM IR to err stream, which can be directed into a file.
-Once you've got the file, you can compile it with the clang.
+Once you've got the file, you can compile it with clang.
 
 * To executable: 
     * `./pseudo <filename> 2> program.ll`
